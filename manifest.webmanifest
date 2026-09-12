@@ -1,6 +1,6 @@
 {
-  "name": "글자 놀이",
-  "short_name": "글자놀이",
+  "name": "한글공부",
+  "short_name": "한글공부",
   "description": "한글 자모 24자 따라쓰기",
   "start_url": "./index.html",
   "scope": "./",

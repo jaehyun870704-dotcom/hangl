@@ -161,8 +161,12 @@ export function createSessionScreen(deps) {
       attempt = 2;
       setTimeout(() => { if (active) showLetter(); }, 1100);
     } else {
+      // 두 번 다 못 맞췄다. 막지는 않지만 «잘했어» 라고 하지도 않는다.
+      // 글자 이름만 한 번 더 들려주고 넘어가고, 재도전 목록에 담는다.
       if (!retryList.includes(j.id)) retryList.push(j.id);
-      praise(j, false);
+      sfx.soft();
+      setTimeout(() => { if (active) say(`jamo-${j.id}`); }, 500);
+      setTimeout(next, 1900);
     }
   }
 
@@ -173,7 +177,7 @@ export function createSessionScreen(deps) {
   function praise(j, strong) {
     sfx.charPass();
     sparkle(strong);
-    say('good');
+    say('good');   // 제대로 해낸 경우에만 부른다
     setTimeout(() => { if (active) say(`jamo-${j.id}`); }, 950);
     setTimeout(next, 2300);
   }
@@ -256,13 +260,8 @@ export function createSessionScreen(deps) {
     tracer.playDemo(() => tracer.enable(true));
   });
 
-  // 아이가 우연히 빠져나가지 않도록 길게 눌러야 나간다
-  let holdTimer = null;
-  const startHold = () => { holdTimer = setTimeout(() => { stop(); onExit?.(); }, 1500); };
-  const cancelHold = () => { clearTimeout(holdTimer); holdTimer = null; };
-  escapeBtn.addEventListener('pointerdown', startHold);
-  ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) =>
-    escapeBtn.addEventListener(ev, cancelHold));
+  // 홈으로 — 한 번 누르면 나간다
+  escapeBtn.addEventListener('click', () => { sfx.tap(); stop(); onExit?.(); });
 
   return { start, stop, resize: () => tracer?.redraw() };
 }

@@ -2,7 +2,8 @@
 // 화면 전환 + 홈 (PRD 7)
 //  아이 화면에는 텍스트가 없다. 아이콘과 음성으로만 안내한다.
 // ============================================================
-import { load, state, todaySessionCount, restartCurriculum, startFromLetter } from './store.js';
+import { load, state, todaySessionCount, restartCurriculum, startFromLetter,
+  markFinishedOnce } from './store.js';
 import { loadStickerMeta, stickerArt } from './stickers.js';
 import { initVoiceBank } from './voicebank.js';
 import { unlock, say, sfx, stopVoice } from './audio.js';
@@ -41,7 +42,17 @@ function show(name, opts = {}) {
     }
   }
   if (name === 'book') {
-    renderStickerBook(screens.book, { onHome: () => show('home', { silent: true }), highlight: opts.highlight ?? null });
+    renderStickerBook(screens.book, {
+      onHome: () => show('home', { silent: true }),
+      highlight: opts.highlight ?? null,
+      finished: !!opts.finished,
+      // 세션을 마치고 온 경우에만 «계속하기» 를 보여 준다
+      onContinue: opts.canContinue ? () => beginSession() : null,
+    });
+    if (opts.finished) {
+      sfx.fanfare();
+      setTimeout(() => say('great'), 600);
+    }
   }
   if (name === 'pick') {
     renderLetterPick(screens.pick, {
@@ -162,24 +173,13 @@ const session = createSessionScreen({
   escapeBtn: document.getElementById('btn-escape'),
   onExit: () => show('home', { silent: true }),
   onFinished: ({ slot }) => {
+    // 자모 24자를 처음 다 뗀 순간인지 (스티커도 이때 딱 다 모인다)
+    const justFinished = markFinishedOnce();
     show('reward');
     playReward(screens.reward, slot, (shown) => {
-      show('book', { highlight: shown });
-      // 스티커북 전체 뷰를 잠깐 보여준 뒤 홈으로 (PRD 6.2 ⑥)
-      const t = setTimeout(() => { if (currentScreen === 'book') show('home', { silent: true });
-
-// 주소 끝에 #record 를 붙이면 녹음 화면이 바로 열린다 (부모가 직접 여는 지름길)
-//   http://localhost:8000/#record  → 녹음 스튜디오까지 한 번에
-//   http://localhost:8000/#voice   → 성우 녹음 화면까지만
-if (location.hash === '#record' || location.hash === '#voice') {
-  show('parent');
-  requestAnimationFrame(() => {
-    screens.parent.querySelector('.lock')?.remove();   // 아이가 아니라 부모가 연 것
-    screens.parent.querySelector('#voice-section')?.scrollIntoView({ block: 'start' });
-    if (location.hash === '#record') screens.parent.querySelector('#rec-start')?.click();
-  });
-} }, 2400);
-      screens.book.addEventListener('pointerdown', () => clearTimeout(t), { once: true });
+      // 스티커북을 보여 주고 기다린다. 저절로 홈으로 가지 않는다 —
+      // 아이가 «계속하기» 를 누르면 다음 글자로, 집 버튼을 누르면 홈으로.
+      show('book', { highlight: shown, finished: justFinished, canContinue: true });
     });
   },
 });

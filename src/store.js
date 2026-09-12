@@ -27,6 +27,7 @@ const defaults = () => ({
     cursor: 0,                 // 커리큘럼 진행 위치 (JAMO 인덱스)
     sessionSize: 3,            // PRD 4.3 초기 세션 크기
     sinceSizeChange: 0,        // 크기 변경 후 누적 세션 수
+    finishedAt: 0,             // 자모 24자를 처음 다 뗀 시각
     weak: [],                  // 다시 만날 글자 id 목록
     stickers: [],              // 획득한 스티커 슬롯 번호 (1..캐릭터 수)
     stats: {},                 // jamoId -> { attempts, passes, accSum, best, last, lastSeen }
@@ -171,13 +172,40 @@ export function restartCurriculum() {
   save();
 }
 
+/**
+ * 스티커를 준다. 글자 진도에 맞춰 나눠 주기 때문에
+ * 마지막 글자(ㅣ)를 떼는 순간 스티커북이 정확히 다 찬다.
+ * 완주한 세션에는 최소 한 장을 준다 (PRD 6.1 — 어떤 경로로도 보상).
+ */
 export function grantSticker() {
   const p = data.progress;
   const total = stickerCount();
-  const next = p.stickers.length + 1;      // 중복 없음, 순서대로 (PRD 6.1)
-  if (next <= total) p.stickers.push(next);  // 다 모은 뒤에는 스티커북을 그대로 둔다
+  if (p.stickers.length >= total) { save(); return null; }   // 이미 다 모았다
+
+  const passed = completedLetters().length;
+  const target = passed >= JAMO.length
+    ? total
+    : Math.min(total, Math.ceil((passed / JAMO.length) * total));
+
+  const give = Math.max(1, target - p.stickers.length);
+  let last = null;
+  for (let i = 0; i < give && p.stickers.length < total; i++) {
+    p.stickers.push(p.stickers.length + 1);
+    last = p.stickers.length;
+  }
   save();
-  return next <= total ? next : null;
+  return last;
+}
+
+/** 자모 24자를 모두 한 번씩 떼었는가 */
+export const isCurriculumDone = () => completedLetters().length >= JAMO.length;
+
+/** 완주를 처음 달성한 순간이면 true 를 돌려주고 기록해 둔다 */
+export function markFinishedOnce() {
+  if (!isCurriculumDone() || data.progress.finishedAt) return false;
+  data.progress.finishedAt = Date.now();
+  save();
+  return true;
 }
 
 /** 오늘 완료한 세션 수 */

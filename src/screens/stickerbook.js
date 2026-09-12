@@ -18,7 +18,7 @@ function homeIcon() {
   </svg>`;
 }
 
-export async function renderStickerBook(root, { onHome, highlight = null } = {}) {
+export async function renderStickerBook(root, { onHome, onContinue, highlight = null, finished = false } = {}) {
   await loadStickerMeta();
   const TOTAL = stickerCount();
   const PER_PAGE = TOTAL <= 12 ? TOTAL : 8;     // 12종 이하면 한 판에 다 넣는다
@@ -86,6 +86,15 @@ export async function renderStickerBook(root, { onHome, highlight = null } = {})
     pages.appendChild(page);
   }
 
+  // 자모를 다 뗀 날 — 축하 띠
+  if (finished) {
+    const banner = document.createElement('div');
+    banner.className = 'book-banner';
+    banner.innerHTML = '<b>자모 24자를 모두 썼어요!</b>'
+      + `<span>친구 ${TOTAL}명을 다 모았어요</span>`;
+    wrap.insertBefore(banner, viewport);
+  }
+
   const nav = document.createElement('div');
   nav.className = 'book-nav';
   if (PAGES < 2) nav.style.visibility = 'hidden';   // 한 판뿐이면 넘길 것이 없다
@@ -97,6 +106,20 @@ export async function renderStickerBook(root, { onHome, highlight = null } = {})
     dots.push(d);
   }
   wrap.appendChild(nav);
+
+  // 계속하기 — 스티커를 본 뒤 아이가 눌러서 다음 글자로 간다 (저절로 넘어가지 않는다)
+  if (onContinue) {
+    const go2 = document.createElement('button');
+    go2.className = 'continue-btn';
+    go2.setAttribute('aria-label', '계속하기');
+    go2.innerHTML = `<svg viewBox="0 0 64 64" width="42" height="42" aria-hidden="true">
+        <circle cx="32" cy="32" r="26" fill="#FFE9A8" stroke="#7A5B2E" stroke-width="3.5"/>
+        <path d="M26 20 L46 32 L26 44 Z" fill="#7A5B2E"/>
+      </svg>`;
+    go2.addEventListener('click', () => { sfx.tap(); onContinue(); });
+    wrap.appendChild(go2);
+  }
+
   root.appendChild(wrap);
 
   let page = highlight ? Math.floor((highlight - 1) / PER_PAGE) : 0;

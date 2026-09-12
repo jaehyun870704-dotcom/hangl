@@ -2,7 +2,7 @@
 // 화면 전환 + 홈 (PRD 7)
 //  아이 화면에는 텍스트가 없다. 아이콘과 음성으로만 안내한다.
 // ============================================================
-import { load, state, todaySessionCount, restartCurriculum } from './store.js';
+import { load, state, todaySessionCount, restartCurriculum, startFromLetter } from './store.js';
 import { loadStickerMeta, stickerArt } from './stickers.js';
 import { initVoiceBank } from './voicebank.js';
 import { unlock, say, sfx, stopVoice } from './audio.js';
@@ -10,6 +10,7 @@ import { createSessionScreen } from './session.js';
 import { playReward } from './screens/reward.js';
 import { renderStickerBook } from './screens/stickerbook.js';
 import { renderParent } from './screens/parent.js';
+import { renderLetterPick } from './screens/letterpick.js';
 
 load();
 loadStickerMeta();
@@ -17,6 +18,7 @@ initVoiceBank();      // 직접 녹음한 음성을 불러온다 (있으면 TTS 
 
 const screens = {
   home: document.getElementById('screen-home'),
+  pick: document.getElementById('screen-pick'),
   session: document.getElementById('screen-session'),
   reward: document.getElementById('screen-reward'),
   book: document.getElementById('screen-book'),
@@ -41,6 +43,12 @@ function show(name, opts = {}) {
   if (name === 'book') {
     renderStickerBook(screens.book, { onHome: () => show('home', { silent: true }), highlight: opts.highlight ?? null });
   }
+  if (name === 'pick') {
+    renderLetterPick(screens.pick, {
+      onHome: () => show('home', { silent: true }),
+      onPick: (index) => { startFromLetter(index); beginSession({ skipWeak: true }); },
+    });
+  }
   if (name === 'parent') {
     renderParent(screens.parent, { onHome: () => show('home', { silent: true }) });
   }
@@ -60,6 +68,7 @@ const btnStart = document.getElementById('btn-start');
 const btnBook = document.getElementById('btn-book');
 const btnParent = document.getElementById('btn-parent');
 const btnRestart = document.getElementById('btn-restart');
+const btnPick = document.getElementById('btn-pick');
 const badge = document.getElementById('book-count');
 
 function updateBookBadge() {
@@ -73,7 +82,7 @@ function updateBookBadge() {
 }
 
 /** 세션 시작 — 이어하기와 처음부터가 함께 쓴다 */
-function beginSession() {
+function beginSession(opts = {}) {
   const limit = state.settings.dailyLimit;
   if (limit > 0 && todaySessionCount() >= limit) {
     // 부모가 상한을 건 경우에만 도달. 막지 않고 스티커북으로 부드럽게 돌린다
@@ -82,7 +91,7 @@ function beginSession() {
     return;
   }
   show('session');
-  session.start();
+  session.start(opts);
 }
 
 // 큰 버튼 = 이어하기 (하던 자리에서)
@@ -96,6 +105,9 @@ btnRestart.addEventListener('click', () => {
 });
 
 btnBook.addEventListener('click', () => { sfx.tap(); show('book'); });
+
+// 글자 고르기 — 아이가 시작할 글자를 직접 고른다
+btnPick.addEventListener('click', () => { sfx.tap(); show('pick'); });
 
 // 부모 메뉴 잠금 — 3초 길게 누르기 (PRD 7)
 let holdRaf = 0, holdStart = 0;

@@ -266,3 +266,22 @@ h3.rec-group small{font-weight:400;color:#B3A38A;margin-left:6px;font-size:11.5p
 .friend-row input{width:100%;font-size:14px}
 .rec-row.stale{background:#FFF6E8}
 .rec-row.stale .rec-state{color:#B4762A;font-weight:700}
+
+/* ─────────── 글자 고르기 ─────────── */
+.pick-btn{position:absolute;z-index:3;left:50%;bottom:3.5vh;transform:translateX(-50%);
+  min-width:150px;height:11vh;min-height:74px;padding:0 22px;border-radius:28px;background:#fff;
+  box-shadow:var(--shadow);display:grid;place-items:center}
+.pick-btn:active{transform:translateX(-50%) scale(.95)}
+.pick-letters{display:flex;gap:10px;align-items:center}
+.pick-letters b{font-size:min(4.4vh,32px);color:var(--ink);font-weight:800;opacity:.85}
+
+.pick-wrap{position:absolute;inset:0;background:var(--cream);display:flex;flex-direction:column}
+.pick-grid{flex:1;display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(4,1fr);
+  gap:1.4vh;padding:9vh 4vh 3vh}
+.pick-cell{position:relative;border-radius:20px;background:#fff;box-shadow:inset 0 0 0 3px #EFE6D8;
+  display:grid;place-items:center;font-size:min(6vh,46px);font-weight:800;color:#8A6E45}
+.pick-cell:active{transform:scale(.94)}
+.pick-cell.done{background:#EDF9F4;box-shadow:inset 0 0 0 3px #9FDCC8;color:#2E6B5C}
+.pick-cell.again{background:#FFF6E4;box-shadow:inset 0 0 0 3px #F0D9A4;color:#A8763A}
+.pick-cell.here{box-shadow:inset 0 0 0 5px var(--sun);}
+.pick-cell .mark{position:absolute;right:8%;top:6%;font-size:min(2.2vh,16px)}

@@ -64,6 +64,18 @@ export async function renderRecorder(host, { onChange } = {}) {
     </div>
     <div class="row">
       <div>
+        <label>여러 파일 한 번에 올리기</label>
+        <small>대본 번호로 시작하는 이름(<code>01_기역.mp3</code>, <code>25_오늘도…</code>)이면
+          알아서 제자리에 들어갑니다. 번호가 없으면 이름에 든 글자로 찾습니다.</small>
+      </div>
+      <div class="ctl">
+        <span class="tiny" id="rec-bulk-msg"></span>
+        <button class="btn ghost" id="rec-bulk">파일 고르기</button>
+        <input type="file" id="rec-bulk-input" accept="audio/*" multiple hidden>
+      </div>
+    </div>
+    <div class="row">
+      <div>
         <label>녹음 대본 받기</label>
         <small>성우에게 건넬 대본입니다. 문구 ${flat.length}개와 발음·녹음 요령이 들어 있습니다.
           이대로 한 번에 쭉 읽어 오시면 위의 «긴 녹음 파일에서 가져오기»로 한 번에 배정됩니다.</small>
@@ -123,6 +135,50 @@ export async function renderRecorder(host, { onChange } = {}) {
     silentEl.textContent = state.settings.onlyRecordedVoice && rest
       ? `${rest}개 문구는 소리가 나지 않습니다` : '';
     onChange?.();
+  }
+
+  // ── 여러 파일 한 번에 ──────────────────────────────────
+  const bulkInput = head.querySelector('#rec-bulk-input');
+  const bulkMsg = head.querySelector('#rec-bulk-msg');
+  head.querySelector('#rec-bulk').addEventListener('click', () => bulkInput.click());
+  bulkInput.addEventListener('change', async () => {
+    const picked = [...(bulkInput.files ?? [])];
+    if (!picked.length) return;
+    const btn = head.querySelector('#rec-bulk');
+    btn.disabled = true;
+    let done = 0;
+    const missed = [];
+    for (let i = 0; i < picked.length; i++) {
+      const f = picked[i];
+      btn.textContent = `넣는 중… ${i + 1}/${picked.length}`;
+      const item = matchLine(f.name);
+      if (!item) { missed.push(f.name); continue; }
+      await saveClip(item.key, f);
+      rememberVoiceLabel(item.key, item.text);
+      paint(item.key);
+      done += 1;
+    }
+    refreshCount();
+    btn.textContent = '파일 고르기';
+    btn.disabled = false;
+    bulkMsg.textContent = `${done}개 넣음` + (missed.length ? ` · 못 찾음 ${missed.length}개` : '');
+    if (missed.length) console.warn('짝을 못 찾은 파일:', missed);
+    bulkInput.value = '';
+  });
+
+  /** 파일 이름으로 어느 문구인지 찾는다 — ①앞 번호 ②이름에 든 글자 */
+  function matchLine(filename) {
+    const stem = filename.replace(/\.[a-z0-9]+$/i, '');
+    const num = stem.match(/^\s*(\d{1,3})/);
+    if (num) {
+      const idx = Number(num[1]) - 1;
+      if (idx >= 0 && idx < flat.length) return flat[idx];
+    }
+    const plain = stem.replace(/[\s_\-.]/g, '');
+    return flat.find((it) => {
+      const t = it.text.replace(/[\s!?~.,]/g, '');
+      return plain.includes(t) || (it.pron && plain.includes(it.pron)) || t.includes(plain);
+    }) || null;
   }
 
   head.querySelector('#rec-script').addEventListener('click', () => {

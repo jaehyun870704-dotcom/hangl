@@ -43,3 +43,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# 원본 녹음 모음 (사람 목소리)
+목소리/

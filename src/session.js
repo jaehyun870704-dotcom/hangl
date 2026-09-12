@@ -9,15 +9,18 @@ import { createTracer } from './trace.js';
 import { say, sfx, stopVoice } from './audio.js';
 
 /** 이번 세션에 배정할 글자 목록 */
-export function composeSession() {
+export function composeSession({ skipWeak = false } = {}) {
   const p = state.progress;
   const size = Math.max(2, Math.min(state.settings.maxSessionSize, p.sessionSize));
   const letters = [];
 
   // 다시 만나야 할 글자를 먼저 (새 글자 진도가 멈추지 않도록 최대 1/3)
+  // 아이가 글자를 직접 골랐을 때는 고른 글자가 맨 앞에 와야 하므로 건너뛴다
   const weakQuota = Math.max(1, Math.floor(size / 3));
-  for (const id of p.weak.slice(0, weakQuota)) {
-    if (letters.length < size - 1) letters.push(id);
+  if (!skipWeak) {
+    for (const id of p.weak.slice(0, weakQuota)) {
+      if (letters.length < size - 1) letters.push(id);
+    }
   }
 
   // 커리큘럼 순서대로 새 글자 채우기 (24자를 다 돌면 처음부터 반복)
@@ -208,9 +211,9 @@ export function createSessionScreen(deps) {
   }
 
   // ── 시작 / 종료 ─────────────────────────────────────────
-  function start() {
+  function start(opts = {}) {
     ensureTracer();
-    const plan = composeSession();
+    const plan = composeSession(opts);
     letters = plan.letters;
     nextCursor = plan.nextCursor;
     idx = 0; attempt = 1; retryRound = false; retryList = [];

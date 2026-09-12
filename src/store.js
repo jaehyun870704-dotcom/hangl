@@ -158,6 +158,12 @@ export function applySessionOutcome({ letters, passed, nextCursor }) {
   save();
 }
 
+/** 고른 글자부터 시작하도록 진도 위치를 옮긴다 */
+export function startFromLetter(index) {
+  data.progress.cursor = Math.max(0, Math.min(JAMO.length - 1, index));
+  save();
+}
+
 /** 커리큘럼만 첫 글자로 되돌린다 (스티커·기록·설정은 그대로) */
 export function restartCurriculum() {
   data.progress.cursor = 0;

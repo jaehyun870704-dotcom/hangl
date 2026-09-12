@@ -1,0 +1,42 @@
+# ─────────────────────────────────────────────────────────
+# 사람 목소리 · 그림 · 효과음은 저장소에 올리지 않는다
+#
+# PRD 6.1 / 8 : 1단계 에셋은 가정 내 사용 한정. 배포·공개 금지.
+#   · 음성 = 실제 사람의 목소리다. 공개 저장소에 올리면 그 사람의 목소리가 공개된다.
+#   · 효과음 = 남이 만든 소리. 재배포는 라이선스에 달려 있다.
+#   · 캐릭터 그림 = 오리지널 24종으로 교체하기 전에는 공개 금지.
+#
+# 코드만 올려도 앱은 그대로 돌아간다 — 음성은 기계음(TTS), 효과음은 코드 합성음,
+# 캐릭터는 코드로 그린 임시 그림으로 대체된다.
+# ─────────────────────────────────────────────────────────
+
+# 소리 파일은 어디에 있든 올리지 않는다 (사람 목소리 · 내려받은 효과음)
+*.mp3
+*.wav
+*.m4a
+*.webm
+*.ogg
+*.flac
+*.aac
+assets/audio/index.json
+assets/audio/source/
+
+# 캐릭터 그림 (1단계 에셋)
+assets/stickers/*.png
+assets/stickers/*.jpg
+assets/stickers/*.webp
+
+# 음성 복제 레퍼런스 · 생성물
+tools/voice/reference/*
+!tools/voice/reference/.gitkeep
+tools/voice/out/
+__pycache__/
+*.pyc
+
+# 이 컴퓨터에만 해당하는 설정
+.bkit/
+.cursor/
+.mcp.json
+.DS_Store
+Thumbs.db
+desktop.ini

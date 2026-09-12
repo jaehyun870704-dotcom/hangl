@@ -1,0 +1,16 @@
+{
+  "name": "글자 놀이",
+  "short_name": "글자놀이",
+  "description": "한글 자모 24자 따라쓰기",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#FFF7EC",
+  "theme_color": "#FFF7EC",
+  "lang": "ko",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

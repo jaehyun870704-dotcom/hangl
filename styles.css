@@ -256,3 +256,13 @@ h3.rec-group small{font-weight:400;color:#B3A38A;margin-left:6px;font-size:11.5p
 .status.ok{background:#EDF9F4;color:#2E6B5C;border:1px solid #CDEBE0}
 .rec-row.with-preset{grid-template-columns:34px 1fr 72px 124px auto}
 .rec-row select.preset{font-size:12px;padding:4px 6px;border-radius:8px;max-width:124px}
+
+/* 친구 이름 바꾸기 */
+.friend-list{padding:8px 14px}
+.friend-row{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:12px;
+  padding:7px 0;border-bottom:1px solid #F3ECE1}
+.friend-row:last-child{border-bottom:0}
+.friend-art{width:40px;height:40px}
+.friend-row input{width:100%;font-size:14px}
+.rec-row.stale{background:#FFF6E8}
+.rec-row.stale .rec-state{color:#B4762A;font-weight:700}

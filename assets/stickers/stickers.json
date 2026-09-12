@@ -1,72 +1,12 @@
 [
-  {
-    "id": 1,
-    "file": "01.png",
-    "name": "씩씩콩",
-    "trait": "씩씩한",
-    "voice": "sticker-01.mp3"
-  },
-  {
-    "id": 2,
-    "file": "02.png",
-    "name": "방긋콩",
-    "trait": "방긋 웃는",
-    "voice": "sticker-02.mp3"
-  },
-  {
-    "id": 3,
-    "file": "03.png",
-    "name": "궁금콩",
-    "trait": "궁금한",
-    "voice": "sticker-03.mp3"
-  },
-  {
-    "id": 4,
-    "file": "04.png",
-    "name": "폴짝콩",
-    "trait": "폴짝 뛰는",
-    "voice": "sticker-04.mp3"
-  },
-  {
-    "id": 5,
-    "file": "05.png",
-    "name": "졸음콩",
-    "trait": "졸린",
-    "voice": "sticker-05.mp3"
-  },
-  {
-    "id": 6,
-    "file": "06.png",
-    "name": "부끄콩",
-    "trait": "부끄러운",
-    "voice": "sticker-06.mp3"
-  },
-  {
-    "id": 7,
-    "file": "07.png",
-    "name": "신난콩",
-    "trait": "신난",
-    "voice": "sticker-07.mp3"
-  },
-  {
-    "id": 8,
-    "file": "08.png",
-    "name": "느긋콩",
-    "trait": "느긋한",
-    "voice": "sticker-08.mp3"
-  },
-  {
-    "id": 9,
-    "file": "09.png",
-    "name": "반짝콩",
-    "trait": "반짝이는",
-    "voice": "sticker-09.mp3"
-  },
-  {
-    "id": 10,
-    "file": "10.png",
-    "name": "뽀글콩",
-    "trait": "뽀글뽀글한",
-    "voice": "sticker-10.mp3"
-  }
+  { "id": 1,  "file": "01.png", "name": "반짝이", "trait": "별",     "voice": "sticker-01.mp3" },
+  { "id": 2,  "file": "02.png", "name": "뭉게",   "trait": "구름",   "voice": "sticker-02.mp3" },
+  { "id": 3,  "file": "03.png", "name": "콩닥이", "trait": "하트",   "voice": "sticker-03.mp3" },
+  { "id": 4,  "file": "04.png", "name": "알록이", "trait": "무지개", "voice": "sticker-04.mp3" },
+  { "id": 5,  "file": "05.png", "name": "쿨쿨이", "trait": "달",     "voice": "sticker-05.mp3" },
+  { "id": 6,  "file": "06.png", "name": "방긋이", "trait": "꽃",     "voice": "sticker-06.mp3" },
+  { "id": 7,  "file": "07.png", "name": "사르르", "trait": "눈송이", "voice": "sticker-07.mp3" },
+  { "id": 8,  "file": "08.png", "name": "톡톡이", "trait": "물방울", "voice": "sticker-08.mp3" },
+  { "id": 9,  "file": "09.png", "name": "폭신이", "trait": "솜사탕", "voice": "sticker-09.mp3" },
+  { "id": 10, "file": "10.png", "name": "깜빡이", "trait": "반딧불", "voice": "sticker-10.mp3" }
 ]

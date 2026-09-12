@@ -2,7 +2,7 @@
 // 로컬 저장소 — 기기 밖으로 나가는 데이터 없음 (PRD 8)
 // ============================================================
 import { JAMO } from './jamo.js';
-import { stickerCount } from './stickers.js';
+import { stickerCount, setNameOverrides } from './stickers.js';
 
 const KEY = 'hangul-trace.v1';
 
@@ -31,6 +31,8 @@ const defaults = () => ({
     stickers: [],              // 획득한 스티커 슬롯 번호 (1..캐릭터 수)
     stats: {},                 // jamoId -> { attempts, passes, accSum, best, last, lastSeen }
   },
+  characters: {},              // 부모가 바꾼 친구 이름 { 슬롯: { name, trait } }
+  voiceLabels: {},             // 녹음할 때의 문구 { 음성키: '그때 읽은 말' }
   sessions: [],                // 최근 기록 (최신이 앞)
 });
 
@@ -54,6 +56,7 @@ export function load() {
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) data = deepMerge(defaults(), JSON.parse(raw));
+    setNameOverrides(data.characters);
   } catch (e) {
     console.warn('저장된 데이터를 읽지 못해 새로 시작합니다.', e);
     data = defaults();
@@ -82,6 +85,21 @@ export function resetProgress() {
   data = defaults();
   data.settings = keepSettings;
   data.profile.name = keepName;
+  save();
+}
+
+/** 친구 이름 바꾸기. 빈 값이면 원래 이름으로 되돌린다 */
+export function setCharacterName(slot, text) {
+  const t = (text || '').trim();
+  if (t) data.characters[slot] = { name: t, trait: '' };
+  else delete data.characters[slot];
+  setNameOverrides(data.characters);
+  save();
+}
+
+/** 이 음성을 녹음할 때 읽은 문구를 적어 둔다 (이름이 바뀌면 알려주려고) */
+export function rememberVoiceLabel(key, label) {
+  data.voiceLabels[key] = label;
   save();
 }
 

@@ -5,9 +5,9 @@
 //  · wav 묶음으로 내보내 assets/audio 에 넣으면 다른 기기에서도 재생된다
 // ============================================================
 import { voiceCatalog, scriptText } from '../lines.js';
-import { loadStickerMeta } from '../stickers.js';
+import { loadStickerMeta, stickerCount, stickerArt, stickerLabel } from '../stickers.js';
 import { SFX_SLOTS, SFX_PRESETS, previewSfx } from '../audio.js';
-import { state, updateSettings } from '../store.js';
+import { state, updateSettings, setCharacterName, rememberVoiceLabel } from '../store.js';
 import {
   canRecord, openMic, closeMic, startRecording,
   saveClip, deleteClip, clearClips, hasClip, clipCount, recordedUrl,
@@ -139,6 +139,59 @@ export async function renderRecorder(host, { onChange } = {}) {
     const only = e.target.checked;
     rowsByKey.forEach((row, key) => { row.hidden = only && hasVoice(key); });
   });
+
+  // ── 친구 이름 바꾸기 ────────────────────────────────────
+  host.insertAdjacentHTML('beforeend',
+    '<h3 class="rec-group">친구 이름 <small>아이가 부르기 쉬운 이름으로 바꿀 수 있습니다. ' +
+    '바꾸면 아래 «캐릭터 이름» 문구도 함께 바뀌니 그 줄만 다시 녹음하세요.</small></h3>');
+  const nameCard = document.createElement('div');
+  nameCard.className = 'card friend-list';
+  for (let slot = 1; slot <= stickerCount(); slot++) {
+    const row = document.createElement('div');
+    row.className = 'friend-row';
+    const art = stickerArt(slot);
+    art.classList.add('friend-art');
+    row.appendChild(art);
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = stickerLabel(slot);
+    input.maxLength = 20;
+    input.setAttribute('aria-label', `${slot}번 친구 이름`);
+    input.addEventListener('change', () => {
+      setCharacterName(slot, input.value);
+      input.value = stickerLabel(slot);
+      redrawVoiceList();
+    });
+    row.appendChild(input);
+
+    const reset = document.createElement('button');
+    reset.className = 'mini';
+    reset.textContent = '원래대로';
+    reset.addEventListener('click', () => {
+      setCharacterName(slot, '');
+      input.value = stickerLabel(slot);
+      redrawVoiceList();
+    });
+    row.appendChild(reset);
+    nameCard.appendChild(row);
+  }
+  host.appendChild(nameCard);
+
+  /** 이름이 바뀌면 아래 문구 목록의 글자와 상태를 다시 그린다 */
+  function redrawVoiceList() {
+    const fresh = voiceCatalog().flatMap((g) => g.items.map((it) => ({ ...it, group: g.group })));
+    fresh.forEach((it, i) => {
+      flat[i].text = it.text;
+      const row = rowsByKey.get(it.key);
+      if (row) {
+        const pron = it.pron ? ` <em class="pron">[${it.pron}]</em>` : '';
+        row.querySelector('.rec-text').innerHTML = it.text + pron;
+      }
+      paint(it.key);
+    });
+    refreshCount();
+  }
 
   // ── 긴 녹음 파일 나누기 ─────────────────────────────────
   const split = document.createElement('div');
@@ -342,6 +395,7 @@ export async function renderRecorder(host, { onChange } = {}) {
         if (!sel.value) return;
         mark.textContent = '저장 중…';
         await saveClip(sel.value, sliceToWav(buffer, sg.start, sg.end));
+        rememberVoiceLabel(sel.value, flat.find((f) => f.key === sel.value)?.text ?? '');
         paint(sel.value);
         refreshCount();
         mark.textContent = '✓ 저장됨';
@@ -392,8 +446,12 @@ export async function renderRecorder(host, { onChange } = {}) {
     const rec = hasClip(key);
     const file = fileKeys.has(key);
     row.classList.toggle('got', rec || file);
+    const said = state.data.voiceLabels?.[key];
+    const now = flat.find((f) => f.key === key)?.text;
+    const stale = (rec || file) && said && now && said !== now;
+    row.classList.toggle('stale', !!stale);
     row.querySelector('.rec-state').textContent =
-      rec ? '● 녹음됨' : file ? '● 파일' : '○ 기계음';
+      stale ? '⚠ 이름 바뀜' : rec ? '● 녹음됨' : file ? '● 파일' : '○ 기계음';
     row.querySelector('[data-act=play]').disabled = !(rec || file);
     row.querySelector('[data-act=del]').disabled = !rec;      // 파일은 여기서 지우지 않는다
   }
@@ -621,6 +679,7 @@ export async function renderRecorder(host, { onChange } = {}) {
         rec = null;
         btnRec.classList.remove('recording');
         await saveClip(flat[i].key, blob);
+        rememberVoiceLabel(flat[i].key, flat[i].text);
         paint(flat[i].key);
         refreshCount();
         show();

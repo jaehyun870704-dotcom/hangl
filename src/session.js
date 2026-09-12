@@ -35,7 +35,7 @@ export function composeSession({ skipWeak = false } = {}) {
 }
 
 export function createSessionScreen(deps) {
-  const { canvas, dotsEl, fxEl, demoBtn, escapeBtn, onFinished, onExit } = deps;
+  const { canvas, dotsEl, fxEl, demoBtn, redoBtn, escapeBtn, onFinished, onExit } = deps;
 
   let tracer = null;
   let letters = [];
@@ -149,25 +149,33 @@ export function createSessionScreen(deps) {
 
     if (retryRound) {
       // 재도전 라운드는 결과와 무관하게 통과 처리 (PRD 5.3)
-      sfx.charPass(); sparkle(true); say('good');
-      setTimeout(next, 1200);
+      praise(j, true);
       return;
     }
 
     if (pass) {
-      sfx.charPass(); sparkle(true); say('good');
-      setTimeout(next, 1200);
+      praise(j, true);
     } else if (attempt === 1) {
       sfx.soft();
       say('try-again');                      // 부정 표현 금지 (PRD 5.4)
       attempt = 2;
       setTimeout(() => { if (active) showLetter(); }, 1100);
     } else {
-      sfx.charPass(); sparkle(false);
-      say('good');
       if (!retryList.includes(j.id)) retryList.push(j.id);
-      setTimeout(next, 1200);
+      praise(j, false);
     }
+  }
+
+  /**
+   * 칭찬하고 넘어간다.
+   * 다 쓴 글자를 한 번 더 들려준다 — 방금 쓴 모양과 이름이 붙게 하려고.
+   */
+  function praise(j, strong) {
+    sfx.charPass();
+    sparkle(strong);
+    say('good');
+    setTimeout(() => { if (active) say(`jamo-${j.id}`); }, 950);
+    setTimeout(next, 2300);
   }
 
   function next() {
@@ -229,6 +237,17 @@ export function createSessionScreen(deps) {
     stopVoice();
     tracer?.enable(false);
   }
+
+  // 다시 쓰기 — 쓰던 글자를 지우고 처음부터. 시도 횟수는 늘리지 않는다
+  redoBtn?.addEventListener('click', () => {
+    if (!active || busy || tracer.isBusy()) return;
+    const j = currentJamo();
+    if (!j) return;
+    sfx.tap();
+    const st = state.settings;
+    tracer.setChar(j, { band: st.band, startR: st.startR, guideScale: attempt > 1 ? 1.3 : 1 });
+    tracer.enable(true);
+  });
 
   // 시범 버튼 (PRD 5.1)
   demoBtn.addEventListener('click', () => {

@@ -138,6 +138,7 @@ const session = createSessionScreen({
   dotsEl: document.getElementById('progress-dots'),
   fxEl: document.getElementById('fx-layer'),
   demoBtn: document.getElementById('btn-demo'),
+  redoBtn: document.getElementById('btn-redo'),
   escapeBtn: document.getElementById('btn-escape'),
   onExit: () => show('home', { silent: true }),
   onFinished: ({ slot }) => {

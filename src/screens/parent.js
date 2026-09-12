@@ -80,16 +80,40 @@ export function renderParent(root, { onHome }) {
       </div>
     </div>
     <div class="ctl">
-      <button class="btn ghost" id="p-voice">성우 녹음</button>
+      <button class="btn ghost" id="p-voice">파일 올리기</button>
       <button class="btn ghost" id="p-home">아이 화면으로</button>
     </div>`;
   wrap.appendChild(head);
+
+  // ── 탭 — 진도 / 업로드 / 설정 ────────────────────────────
+  const tabbar = document.createElement('div');
+  tabbar.className = 'tabbar';
+  const panels = {};
+  const tabs = [['progress', '진도'], ['upload', '올리기'], ['settings', '설정']];
+  tabs.forEach(([id, label]) => {
+    const b = document.createElement('button');
+    b.className = 'tab';
+    b.textContent = label;
+    b.dataset.tab = id;
+    b.addEventListener('click', () => showTab(id));
+    tabbar.appendChild(b);
+    const panel = document.createElement('div');
+    panel.className = 'tab-panel';
+    panels[id] = panel;
+  });
+  wrap.appendChild(tabbar);
+  Object.values(panels).forEach((el) => wrap.appendChild(el));
+
+  function showTab(id) {
+    tabbar.querySelectorAll('.tab').forEach((b) => b.classList.toggle('on', b.dataset.tab === id));
+    Object.entries(panels).forEach(([k, el]) => { el.hidden = k !== id; });
+    wrap.scrollTop = 0;
+  }
   head.querySelector('#p-home').addEventListener('click', () => onHome?.());
-  head.querySelector('#p-voice').addEventListener('click', () =>
-    wrap.querySelector('#voice-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  head.querySelector('#p-voice').addEventListener('click', () => showTab('upload'));
 
   // 자모 진도
-  wrap.insertAdjacentHTML('beforeend', '<h2>자모 24자</h2>');
+  panels.progress.insertAdjacentHTML('beforeend', '<h2>자모 24자</h2>');
   const card1 = document.createElement('div');
   card1.className = 'card';
   const grid = document.createElement('div');
@@ -106,10 +130,10 @@ export function renderParent(root, { onHome }) {
   card1.appendChild(grid);
   card1.insertAdjacentHTML('beforeend',
     `<div class="empty-note">초록 = 1회 이상 통과 · 빨강 = 취약하거나 다시 만날 글자${p.weak.length ? ` (${p.weak.length}자 대기 중)` : ''}</div>`);
-  wrap.appendChild(card1);
+  panels.progress.appendChild(card1);
 
   // 취약 자모
-  wrap.insertAdjacentHTML('beforeend', '<h2>취약 자모 상위 5</h2>');
+  panels.progress.insertAdjacentHTML('beforeend', '<h2>취약 자모 상위 5</h2>');
   const card2 = document.createElement('div');
   card2.className = 'card';
   if (!weak.length) {
@@ -121,10 +145,10 @@ export function renderParent(root, { onHome }) {
         return `<tr><td>${j.ch} (${j.name})</td><td>${pct(w.avg)}</td><td>${w.attempts}회</td></tr>`;
       }).join('')}</tbody></table>`;
   }
-  wrap.appendChild(card2);
+  panels.progress.appendChild(card2);
 
   // 최근 14일 기록
-  wrap.insertAdjacentHTML('beforeend', '<h2>최근 14일 세션 기록</h2>');
+  panels.progress.insertAdjacentHTML('beforeend', '<h2>최근 14일 세션 기록</h2>');
   const card3 = document.createElement('div');
   card3.className = 'card';
   const since = Date.now() - 14 * 864e5;
@@ -142,13 +166,13 @@ export function renderParent(root, { onHome }) {
         <td>${s.letters.map((id) => JAMO.find((j) => j.id === id)?.ch ?? '').join(' ')}</td>
       </tr>`).join('')}</tbody></table>`;
   }
-  wrap.appendChild(card3);
+  panels.progress.appendChild(card3);
 
   // 설정
-  wrap.insertAdjacentHTML('beforeend', '<h2>설정</h2>');
+  panels.settings.insertAdjacentHTML('beforeend', '<h2>설정</h2>');
   const card4 = document.createElement('div');
   card4.className = 'card';
-  wrap.appendChild(card4);
+  panels.settings.appendChild(card4);
 
   const rows = [
     {
@@ -224,13 +248,13 @@ export function renderParent(root, { onHome }) {
   });
 
   // 성우 녹음 (PRD 4.2 · 10-3)
-  wrap.insertAdjacentHTML('beforeend', '<h2 id="voice-section">성우 녹음</h2>');
+  panels.upload.insertAdjacentHTML('beforeend', '<h2 id="voice-section">목소리 · 효과음 · 그림 올리기</h2>');
   const recHost = document.createElement('div');
-  wrap.appendChild(recHost);
+  panels.upload.appendChild(recHost);
   renderRecorder(recHost);
 
   // 자녀 프로필
-  wrap.insertAdjacentHTML('beforeend', '<h2>자녀 프로필</h2>');
+  panels.settings.insertAdjacentHTML('beforeend', '<h2>자녀 프로필</h2>');
   const card5 = document.createElement('div');
   card5.className = 'card';
   const nameRow = document.createElement('div');
@@ -264,8 +288,10 @@ export function renderParent(root, { onHome }) {
   });
   resetRow.appendChild(resetBtn);
   card5.appendChild(resetRow);
-  wrap.appendChild(card5);
+  panels.settings.appendChild(card5);
 
-  wrap.insertAdjacentHTML('beforeend',
+  panels.settings.insertAdjacentHTML('beforeend',
     '<div class="empty-note" style="margin-top:18px">모든 데이터는 이 기기에만 저장됩니다. 계정·서버 전송·광고·결제 없음.</div>');
+
+  showTab(location.hash === '#voice' || location.hash === '#record' ? 'upload' : 'progress');
 }

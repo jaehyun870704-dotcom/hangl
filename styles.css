@@ -285,3 +285,16 @@ h3.rec-group small{font-weight:400;color:#B3A38A;margin-left:6px;font-size:11.5p
 .pick-cell.again{background:#FFF6E4;box-shadow:inset 0 0 0 3px #F0D9A4;color:#A8763A}
 .pick-cell.here{box-shadow:inset 0 0 0 5px var(--sun);}
 .pick-cell .mark{position:absolute;right:8%;top:6%;font-size:min(2.2vh,16px)}
+
+/* 다시 쓰기 (세션 중) */
+.redo-btn{position:absolute;right:11.5vh;top:50%;transform:translateY(-50%);
+  width:56px;height:56px;border-radius:50%;background:#fff;box-shadow:var(--shadow);
+  display:grid;place-items:center}
+.redo-btn:active{transform:translateY(-50%) scale(.92)}
+
+/* 관리자 페이지 탭 */
+.tabbar{display:flex;gap:8px;margin:14px 0 4px;border-bottom:2px solid #EFE6D8;padding-bottom:0}
+.tab{font-size:14px;font-weight:700;color:#B3A38A;padding:10px 18px;border-radius:12px 12px 0 0;
+  background:transparent;position:relative;top:2px}
+.tab.on{color:var(--ink);background:#fff;box-shadow:0 -2px 0 var(--ok) inset,0 -2px 8px rgba(0,0,0,.04)}
+.tab-panel[hidden]{display:none}

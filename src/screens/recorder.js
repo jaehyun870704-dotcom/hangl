@@ -5,7 +5,8 @@
 //  · wav 묶음으로 내보내 assets/audio 에 넣으면 다른 기기에서도 재생된다
 // ============================================================
 import { voiceCatalog, scriptText } from '../lines.js';
-import { loadStickerMeta, stickerCount, stickerArt, stickerLabel } from '../stickers.js';
+import { loadStickerMeta, stickerCount, stickerArt, stickerLabel,
+  saveStickerImage, clearStickerImage, hasStickerImage } from '../stickers.js';
 import { SFX_SLOTS, SFX_PRESETS, previewSfx } from '../audio.js';
 import { state, updateSettings, setCharacterName, rememberVoiceLabel } from '../store.js';
 import {
@@ -165,16 +166,53 @@ export async function renderRecorder(host, { onChange } = {}) {
     });
     row.appendChild(input);
 
+    const picker = document.createElement('input');
+    picker.type = 'file';
+    picker.accept = 'image/*';
+    picker.hidden = true;
+    row.appendChild(picker);
+
+    const pick = document.createElement('button');
+    pick.className = 'mini';
+    pick.textContent = hasStickerImage(slot) ? '그림 바꾸기' : '그림';
+    pick.addEventListener('click', () => picker.click());
+    picker.addEventListener('change', async () => {
+      const f = picker.files?.[0];
+      if (!f) return;
+      pick.textContent = '넣는 중…';
+      try {
+        await saveStickerImage(slot, f);
+        swapArt();
+        pick.textContent = '그림 바꾸기';
+      } catch (err) {
+        console.warn(err);
+        pick.textContent = '실패';
+        setTimeout(() => { pick.textContent = hasStickerImage(slot) ? '그림 바꾸기' : '그림'; }, 1600);
+      }
+      picker.value = '';
+    });
+    row.appendChild(pick);
+
     const reset = document.createElement('button');
     reset.className = 'mini';
     reset.textContent = '원래대로';
-    reset.addEventListener('click', () => {
+    reset.addEventListener('click', async () => {
       setCharacterName(slot, '');
+      await clearStickerImage(slot);
       input.value = stickerLabel(slot);
+      pick.textContent = '그림';
+      swapArt();
       redrawVoiceList();
     });
     row.appendChild(reset);
     nameCard.appendChild(row);
+
+    /** 그림이 바뀌면 그 줄의 미리보기만 다시 그린다 */
+    function swapArt() {
+      const fresh = stickerArt(slot);
+      fresh.classList.add('friend-art');
+      row.replaceChild(fresh, row.firstChild);
+    }
   }
   host.appendChild(nameCard);
 
@@ -419,13 +457,30 @@ export async function renderRecorder(host, { onChange } = {}) {
         <span class="rec-state"></span>
         <span class="rec-actions">
           <button class="mini" data-act="rec">녹음</button>
+          <button class="mini" data-act="file">파일</button>
           <button class="mini" data-act="play">듣기</button>
           <button class="mini" data-act="del">삭제</button>
+          <input type="file" accept="audio/*" hidden>
         </span>`;
       card.appendChild(row);
       rowsByKey.set(it.key, row);
 
       row.querySelector('[data-act=rec]').addEventListener('click', () => openStudio(flat.findIndex((f) => f.key === it.key)));
+
+      // 소리 파일 올리기 — 마이크가 막힌 태블릿에서 쓰는 길
+      const audioInput = row.querySelector('input[type=file]');
+      row.querySelector('[data-act=file]').addEventListener('click', () => audioInput.click());
+      audioInput.addEventListener('change', async () => {
+        const f = audioInput.files?.[0];
+        if (!f) return;
+        await saveClip(it.key, f);
+        rememberVoiceLabel(it.key, flat.find((x) => x.key === it.key)?.text ?? it.text);
+        paint(it.key);
+        refreshCount();
+        const url = recordedUrl(it.key);
+        if (url) new Audio(url).play().catch(() => {});
+        audioInput.value = '';
+      });
       row.querySelector('[data-act=play]').addEventListener('click', () => {
         const url = recordedUrl(it.key)
           || (fileKeys.has(it.key) ? `assets/audio/${fileKeys.get(it.key)}` : null);

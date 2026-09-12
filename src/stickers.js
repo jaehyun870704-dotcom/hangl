@@ -6,7 +6,48 @@
 //   캐릭터 수는 stickers.json 의 항목 수가 정한다.
 // ============================================================
 
+import { saveClip, deleteClip, recordedUrl, hasClip } from './voicebank.js';
+
 const DIR = 'assets/stickers/';
+const MAX_PX = 512;          // 올린 그림은 이 크기로 줄여 저장한다
+
+/** 기기에 올려 둔 그림의 보관 키 */
+const imageKey = (slot) => `img-${String(slot).padStart(2, '0')}`;
+
+export const hasStickerImage = (slot) => hasClip(imageKey(slot));
+
+/** 그림 파일을 올린다. 큰 사진은 512px 로 줄여 저장한다 */
+export async function saveStickerImage(slot, file) {
+  const small = await shrinkImage(file);
+  await saveClip(imageKey(slot), small);
+  imageOk.delete(slot);
+}
+
+/** 올린 그림을 지우고 기본 그림으로 되돌린다 */
+export async function clearStickerImage(slot) {
+  await deleteClip(imageKey(slot));
+  imageOk.delete(slot);
+}
+
+/** 사진을 정사각 512px 안에 맞춰 줄인다 (원본 비율 유지, 투명 배경 보존) */
+function shrinkImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, MAX_PX / Math.max(img.width, img.height));
+      const w = Math.max(1, Math.round(img.width * scale));
+      const h = Math.max(1, Math.round(img.height * scale));
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      cv.toBlob((b) => (b ? resolve(b) : reject(new Error('그림을 바꾸지 못했습니다'))), 'image/png');
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('그림을 읽지 못했습니다')); };
+    img.src = url;
+  });
+}
 
 /**
  * stickers.json 을 못 읽는 경우(또는 아직 읽는 중)의 대체 메타데이터.
@@ -203,19 +244,30 @@ export function stickerArt(slot, { className = 'art' } = {}) {
   const svg = wrap.querySelector('svg');
   if (svg) { svg.setAttribute('width', '100%'); svg.setAttribute('height', '100%'); }
 
+  const meta = stickerMeta(slot);
+  const show = (el) => {
+    wrap.innerHTML = '';
+    el.style.width = '100%';
+    el.style.height = '100%';
+    el.style.objectFit = 'contain';
+    el.alt = esc(meta.name || '');
+    wrap.appendChild(el);
+  };
+
+  // ① 부모가 앱에서 올린 그림 (태블릿에서도 이 방법으로 넣는다)
+  const own = recordedUrl(imageKey(slot));
+  if (own) {
+    const up = new Image();
+    up.onload = () => show(up);
+    up.src = own;
+    return wrap;
+  }
+
+  // ② assets/stickers 폴더의 그림 → ③ 코드로 그린 기본 캐릭터
   if (imageOk.get(slot) === false) return wrap;
 
-  const meta = stickerMeta(slot);
   const img = new Image();
-  img.onload = () => {
-    imageOk.set(slot, true);
-    wrap.innerHTML = '';
-    img.style.width = '100%';
-    img.style.height = '100%';
-    img.style.objectFit = 'contain';
-    img.alt = esc(meta.name || '');
-    wrap.appendChild(img);
-  };
+  img.onload = () => { imageOk.set(slot, true); show(img); };
   img.onerror = () => imageOk.set(slot, false);
   img.src = DIR + (meta.file || `${String(slot).padStart(2, '0')}.png`);
   return wrap;

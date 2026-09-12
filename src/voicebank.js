@@ -320,19 +320,49 @@ export function makeZip(files) {
 export async function exportVoicePack() {
   const keys = [...urls.keys()].sort();
   const files = [];
+  let voices = 0, effects = 0, images = 0;
+  const failed = [];
+
   for (const key of keys) {
     const blob = await getClip(key);
     if (!blob) continue;
-    files.push({ name: `${key}.wav`, data: await toWav(blob) });
+    try {
+      if (key.startsWith('img-')) {
+        // 그림은 소리가 아니다 — 바꾸지 말고 그대로 담는다
+        files.push({ name: `stickers/${key.slice(4)}.png`,
+                     data: new Uint8Array(await blob.arrayBuffer()) });
+        images += 1;
+      } else {
+        files.push({ name: `${key}.wav`, data: await toWav(blob) });
+        if (key.startsWith('sfx-')) effects += 1; else voices += 1;
+      }
+    } catch (e) {
+      // 하나가 잘못돼도 나머지는 건진다
+      console.warn('내보내기에서 건너뜀:', key, e);
+      failed.push(key);
+    }
   }
   if (!files.length) return null;
-  files.push({
-    name: '넣는-방법.txt',
-    data: new TextEncoder().encode(
-      '이 파일들을 앱 폴더의 assets/audio/ 안에 그대로 넣으세요.\r\n' +
-      '파일 이름은 바꾸지 마세요. 넣으면 태블릿에서도 이 목소리로 재생됩니다.\r\n' +
-      `녹음 ${files.length}개\r\n`),
-  });
+
+  const how = [
+    '넣는 방법',
+    '─────────────────────────────',
+    '',
+    `소리 ${voices}개   : sfx- 로 시작하지 않는 *.wav`,
+    '   → 앱 폴더의 assets/audio/ 안에 그대로 넣으세요.',
+    '',
+    `효과음 ${effects}개 : sfx-*.wav`,
+    '   → 앱 폴더의 assets/sfx/ 안에 그대로 넣으세요.',
+    '',
+    `그림 ${images}개   : stickers/ 폴더 안의 png`,
+    '   → 앱 폴더의 assets/stickers/ 안에 그대로 넣으세요.',
+    '',
+    '파일 이름은 바꾸지 마세요. 넣으면 태블릿에서도 그대로 나옵니다.',
+  ];
+  if (failed.length) how.push('', `※ 담지 못한 것: ${failed.join(', ')}`);
+
+  files.push({ name: '넣는-방법.txt',
+               data: new TextEncoder().encode(how.join('\r\n') + '\r\n') });
   return makeZip(files);
 }
 

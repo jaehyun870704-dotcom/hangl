@@ -2,7 +2,7 @@
 // 화면 전환 + 홈 (PRD 7)
 //  아이 화면에는 텍스트가 없다. 아이콘과 음성으로만 안내한다.
 // ============================================================
-import { load, state, todaySessionCount } from './store.js';
+import { load, state, todaySessionCount, restartCurriculum } from './store.js';
 import { loadStickerMeta, stickerArt } from './stickers.js';
 import { initVoiceBank } from './voicebank.js';
 import { unlock, say, sfx, stopVoice } from './audio.js';
@@ -32,6 +32,8 @@ function show(name, opts = {}) {
 
   if (name === 'home') {
     updateBookBadge();
+    // 하던 것이 있을 때만 «처음부터» 를 보여 준다
+    btnRestart.hidden = !(state.progress.cursor > 0 || state.sessions.length > 0);
     if (audioReady && !opts.silent) {
       setTimeout(() => say('home-greeting'), 350);
     }
@@ -57,6 +59,7 @@ window.addEventListener('pointerdown', firstTouch, { once: true, capture: true }
 const btnStart = document.getElementById('btn-start');
 const btnBook = document.getElementById('btn-book');
 const btnParent = document.getElementById('btn-parent');
+const btnRestart = document.getElementById('btn-restart');
 const badge = document.getElementById('book-count');
 
 function updateBookBadge() {
@@ -69,8 +72,8 @@ function updateBookBadge() {
   badge.appendChild(art);
 }
 
-btnStart.addEventListener('click', () => {
-  sfx.tap();
+/** 세션 시작 — 이어하기와 처음부터가 함께 쓴다 */
+function beginSession() {
   const limit = state.settings.dailyLimit;
   if (limit > 0 && todaySessionCount() >= limit) {
     // 부모가 상한을 건 경우에만 도달. 막지 않고 스티커북으로 부드럽게 돌린다
@@ -80,6 +83,16 @@ btnStart.addEventListener('click', () => {
   }
   show('session');
   session.start();
+}
+
+// 큰 버튼 = 이어하기 (하던 자리에서)
+btnStart.addEventListener('click', () => { sfx.tap(); beginSession(); });
+
+// 작은 버튼 = 처음부터 (첫 글자 ㄱ 부터 다시. 스티커와 기록은 그대로 남는다)
+btnRestart.addEventListener('click', () => {
+  sfx.tap();
+  restartCurriculum();
+  beginSession();
 });
 
 btnBook.addEventListener('click', () => { sfx.tap(); show('book'); });

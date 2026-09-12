@@ -2,6 +2,7 @@
 // 로컬 저장소 — 기기 밖으로 나가는 데이터 없음 (PRD 8)
 // ============================================================
 import { JAMO } from './jamo.js';
+import { stickerCount } from './stickers.js';
 
 const KEY = 'hangul-trace.v1';
 
@@ -27,7 +28,7 @@ const defaults = () => ({
     sessionSize: 3,            // PRD 4.3 초기 세션 크기
     sinceSizeChange: 0,        // 크기 변경 후 누적 세션 수
     weak: [],                  // 다시 만날 글자 id 목록
-    stickers: [],              // 획득한 스티커 슬롯 번호 (1..24, 그 이상은 순환)
+    stickers: [],              // 획득한 스티커 슬롯 번호 (1..캐릭터 수)
     stats: {},                 // jamoId -> { attempts, passes, accSum, best, last, lastSeen }
   },
   sessions: [],                // 최근 기록 (최신이 앞)
@@ -139,12 +140,20 @@ export function applySessionOutcome({ letters, passed, nextCursor }) {
   save();
 }
 
+/** 커리큘럼만 첫 글자로 되돌린다 (스티커·기록·설정은 그대로) */
+export function restartCurriculum() {
+  data.progress.cursor = 0;
+  data.progress.weak = [];
+  save();
+}
+
 export function grantSticker() {
   const p = data.progress;
+  const total = stickerCount();
   const next = p.stickers.length + 1;      // 중복 없음, 순서대로 (PRD 6.1)
-  if (next <= 24) p.stickers.push(next);   // 24종 소진 후에는 스티커북 유지
+  if (next <= total) p.stickers.push(next);  // 다 모은 뒤에는 스티커북을 그대로 둔다
   save();
-  return next <= 24 ? next : null;
+  return next <= total ? next : null;
 }
 
 /** 오늘 완료한 세션 수 */

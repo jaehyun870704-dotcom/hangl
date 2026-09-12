@@ -1,8 +1,9 @@
 // ============================================================
 // 스티커 슬롯 (PRD 6.1 — 에셋 교체 가능 구조)
-//   assets/stickers/stickers.json 의 메타데이터 + 01.png ~ 24.png 이미지
+//   assets/stickers/stickers.json 의 메타데이터 + 01.png ~ NN.png 이미지
 //   이미지 파일이 없으면 코드로 그린 임시 캐릭터(플레이스홀더)를 쓴다.
-//   → 이미지 24장만 넣으면 전체 캐릭터 세트가 교체된다. 코드 수정 불필요.
+//   → 이미지만 갈아끼우면 전체 캐릭터 세트가 교체된다. 코드 수정 불필요.
+//   캐릭터 수는 stickers.json 의 항목 수가 정한다.
 // ============================================================
 
 const DIR = 'assets/stickers/';
@@ -11,7 +12,10 @@ const DIR = 'assets/stickers/';
  * stickers.json 을 못 읽는 경우(또는 아직 읽는 중)의 대체 메타데이터.
  * voice 키는 반드시 실제와 같은 이름이어야 한다 — 다르면 녹음이 엉뚱한 이름으로 저장된다.
  */
-const FALLBACK = Array.from({ length: 24 }, (_, i) => ({
+/** stickers.json 을 읽기 전에 쓰는 기본 개수. json 과 같아야 한다 */
+export const SLOT_COUNT = 10;
+
+const FALLBACK = Array.from({ length: SLOT_COUNT }, (_, i) => ({
   id: i + 1,
   file: `${String(i + 1).padStart(2, '0')}.png`,
   name: `친구 ${i + 1}`,
@@ -34,7 +38,7 @@ export async function loadStickerMeta() {
 }
 
 export const stickerMeta = (slot) => META[slot - 1] || FALLBACK[slot - 1];
-export const stickerCount = () => Math.max(META.length, 24);
+export const stickerCount = () => META.length || SLOT_COUNT;
 
 /** 음성 파일 키 (assets/audio/<key>.mp3). 없으면 TTS로 이름을 읽는다 */
 export function stickerVoiceKey(slot) {
@@ -60,9 +64,9 @@ function esc(s) { return String(s).replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>'
 
 /** 슬롯 번호로 결정되는 임시 캐릭터 SVG 문자열 */
 export function placeholderSVG(slot) {
-  const i = (slot - 1) % 24;
+  const i = slot - 1;
   const [light, base] = PALETTE[i % PALETTE.length];
-  const cat = i >= 12;                   // 1~12 강아지 계열, 13~24 고양이 계열
+  const cat = i >= 12;                   // 13번부터 고양이 계열 (지금은 10종이라 전부 강아지)
   const eyeStyle = i % 3;                // 0 동글, 1 반달, 2 초롱
   const extra = i % 4;                   // 장식
   const gid = `g${slot}`;

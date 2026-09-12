@@ -49,7 +49,7 @@ export function lineFor(key) {
 /** 부모 메뉴 녹음 목록 — 그룹별로 묶어서 반환 */
 export function voiceCatalog() {
   const stickers = [];
-  for (let slot = 1; slot <= Math.min(24, stickerCount()); slot++) {
+  for (let slot = 1; slot <= stickerCount(); slot++) {
     stickers.push({ key: stickerVoiceKey(slot), label: `${slot}번`, text: stickerLabel(slot) });
   }
   return [

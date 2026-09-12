@@ -20,6 +20,9 @@
 *.aac
 assets/audio/index.json
 assets/audio/source/
+목소리-모음/
+목소리-모음.zip
+*.zip
 
 # 캐릭터 그림 (1단계 에셋)
 assets/stickers/*.png

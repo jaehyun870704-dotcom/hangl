@@ -4,6 +4,7 @@
 //  진도 현황 / 최근 14일 기록 / 설정 / 자녀 프로필
 // ============================================================
 import { JAMO } from '../jamo.js';
+import { stickerCount } from '../stickers.js';
 import {
   state, save, updateSettings, resetProgress,
   weakestLetters, completedLetters, dayKey, todaySessionCount,
@@ -73,7 +74,7 @@ export function renderParent(root, { onHome }) {
       <h1>${p.stickers.length ? '진도 현황' : '아직 기록이 없습니다'}</h1>
       <div class="pills">
         <span class="pill">완료 자모 ${done.size} / 24</span>
-        <span class="pill">스티커 ${p.stickers.length} / 24</span>
+        <span class="pill">스티커 ${p.stickers.length} / ${stickerCount()}</span>
         <span class="pill">현재 세션 크기 ${p.sessionSize}자</span>
         <span class="pill">오늘 세션 ${todaySessionCount()}회</span>
       </div>

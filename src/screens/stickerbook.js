@@ -1,16 +1,14 @@
 // ============================================================
 // 스티커북 (PRD 6.3)
-//  - 1판 8칸 × 3판 = 24종, 스와이프로 넘김
+//  - 캐릭터 수(stickers.json)에 맞춰 칸과 판 수를 정한다
 //  - 못 받은 칸은 실루엣으로 보인다 (다음 목표 시각화)
 //  - 받은 스티커를 누르면 움직이고 이름을 말한다
 //  - 도장을 누르면 "참 잘했어요!" 재생
 // ============================================================
-import { stickerArt, stickerVoiceKey } from '../stickers.js';
+import { stickerArt, stickerVoiceKey, stickerCount, loadStickerMeta } from '../stickers.js';
 import { say, sfx } from '../audio.js';
 import { state } from '../store.js';
 
-const PER_PAGE = 8;
-const PAGES = 3;
 
 function homeIcon() {
   return `<svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">
@@ -20,7 +18,12 @@ function homeIcon() {
   </svg>`;
 }
 
-export function renderStickerBook(root, { onHome, highlight = null } = {}) {
+export async function renderStickerBook(root, { onHome, highlight = null } = {}) {
+  await loadStickerMeta();
+  const TOTAL = stickerCount();
+  const PER_PAGE = TOTAL <= 12 ? TOTAL : 8;     // 12종 이하면 한 판에 다 넣는다
+  const PAGES = Math.ceil(TOTAL / PER_PAGE);
+  const COLS = Math.ceil(PER_PAGE / 2);
   const owned = new Set(state.progress.stickers);
   root.innerHTML = '';
 
@@ -44,8 +47,10 @@ export function renderStickerBook(root, { onHome, highlight = null } = {}) {
   for (let p = 0; p < PAGES; p++) {
     const page = document.createElement('div');
     page.className = 'book-page';
+    page.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
     for (let k = 0; k < PER_PAGE; k++) {
       const slot = p * PER_PAGE + k + 1;
+      if (slot > TOTAL) break;
       const got = owned.has(slot);
       const cell = document.createElement('div');
       cell.className = `slot ${got ? 'got' : 'empty'}`;
@@ -83,6 +88,7 @@ export function renderStickerBook(root, { onHome, highlight = null } = {}) {
 
   const nav = document.createElement('div');
   nav.className = 'book-nav';
+  if (PAGES < 2) nav.style.visibility = 'hidden';   // 한 판뿐이면 넘길 것이 없다
   const dots = [];
   for (let p = 0; p < PAGES; p++) {
     const d = document.createElement('i');

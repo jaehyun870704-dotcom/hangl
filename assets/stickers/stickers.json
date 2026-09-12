@@ -1,26 +1,72 @@
 [
-  { "id": 1,  "file": "01.png", "name": "씩씩콩", "trait": "씩씩한",     "voice": "sticker-01.mp3" },
-  { "id": 2,  "file": "02.png", "name": "방긋콩", "trait": "방긋 웃는",   "voice": "sticker-02.mp3" },
-  { "id": 3,  "file": "03.png", "name": "궁금콩", "trait": "궁금한",     "voice": "sticker-03.mp3" },
-  { "id": 4,  "file": "04.png", "name": "폴짝콩", "trait": "폴짝 뛰는",   "voice": "sticker-04.mp3" },
-  { "id": 5,  "file": "05.png", "name": "졸음콩", "trait": "졸린",       "voice": "sticker-05.mp3" },
-  { "id": 6,  "file": "06.png", "name": "부끄콩", "trait": "부끄러운",    "voice": "sticker-06.mp3" },
-  { "id": 7,  "file": "07.png", "name": "신난콩", "trait": "신난",       "voice": "sticker-07.mp3" },
-  { "id": 8,  "file": "08.png", "name": "느긋콩", "trait": "느긋한",     "voice": "sticker-08.mp3" },
-  { "id": 9,  "file": "09.png", "name": "반짝콩", "trait": "반짝이는",    "voice": "sticker-09.mp3" },
-  { "id": 10, "file": "10.png", "name": "뽀글콩", "trait": "뽀글뽀글한",  "voice": "sticker-10.mp3" },
-  { "id": 11, "file": "11.png", "name": "용감콩", "trait": "용감한",     "voice": "sticker-11.mp3" },
-  { "id": 12, "file": "12.png", "name": "달콤콩", "trait": "달콤한",     "voice": "sticker-12.mp3" },
-  { "id": 13, "file": "13.png", "name": "야옹뽕", "trait": "야옹거리는",  "voice": "sticker-13.mp3" },
-  { "id": 14, "file": "14.png", "name": "살금뽕", "trait": "살금살금",    "voice": "sticker-14.mp3" },
-  { "id": 15, "file": "15.png", "name": "갸릉뽕", "trait": "갸르릉대는",  "voice": "sticker-15.mp3" },
-  { "id": 16, "file": "16.png", "name": "동글뽕", "trait": "동글동글한",  "voice": "sticker-16.mp3" },
-  { "id": 17, "file": "17.png", "name": "새콤뽕", "trait": "새콤한",     "voice": "sticker-17.mp3" },
-  { "id": 18, "file": "18.png", "name": "말랑뽕", "trait": "말랑한",     "voice": "sticker-18.mp3" },
-  { "id": 19, "file": "19.png", "name": "조용뽕", "trait": "조용한",     "voice": "sticker-19.mp3" },
-  { "id": 20, "file": "20.png", "name": "깜짝뽕", "trait": "깜짝 놀란",   "voice": "sticker-20.mp3" },
-  { "id": 21, "file": "21.png", "name": "포근뽕", "trait": "포근한",     "voice": "sticker-21.mp3" },
-  { "id": 22, "file": "22.png", "name": "보들뽕", "trait": "보들보들한",  "voice": "sticker-22.mp3" },
-  { "id": 23, "file": "23.png", "name": "상냥뽕", "trait": "상냥한",     "voice": "sticker-23.mp3" },
-  { "id": 24, "file": "24.png", "name": "반달뽕", "trait": "반달눈",     "voice": "sticker-24.mp3" }
+  {
+    "id": 1,
+    "file": "01.png",
+    "name": "씩씩콩",
+    "trait": "씩씩한",
+    "voice": "sticker-01.mp3"
+  },
+  {
+    "id": 2,
+    "file": "02.png",
+    "name": "방긋콩",
+    "trait": "방긋 웃는",
+    "voice": "sticker-02.mp3"
+  },
+  {
+    "id": 3,
+    "file": "03.png",
+    "name": "궁금콩",
+    "trait": "궁금한",
+    "voice": "sticker-03.mp3"
+  },
+  {
+    "id": 4,
+    "file": "04.png",
+    "name": "폴짝콩",
+    "trait": "폴짝 뛰는",
+    "voice": "sticker-04.mp3"
+  },
+  {
+    "id": 5,
+    "file": "05.png",
+    "name": "졸음콩",
+    "trait": "졸린",
+    "voice": "sticker-05.mp3"
+  },
+  {
+    "id": 6,
+    "file": "06.png",
+    "name": "부끄콩",
+    "trait": "부끄러운",
+    "voice": "sticker-06.mp3"
+  },
+  {
+    "id": 7,
+    "file": "07.png",
+    "name": "신난콩",
+    "trait": "신난",
+    "voice": "sticker-07.mp3"
+  },
+  {
+    "id": 8,
+    "file": "08.png",
+    "name": "느긋콩",
+    "trait": "느긋한",
+    "voice": "sticker-08.mp3"
+  },
+  {
+    "id": 9,
+    "file": "09.png",
+    "name": "반짝콩",
+    "trait": "반짝이는",
+    "voice": "sticker-09.mp3"
+  },
+  {
+    "id": 10,
+    "file": "10.png",
+    "name": "뽀글콩",
+    "trait": "뽀글뽀글한",
+    "voice": "sticker-10.mp3"
+  }
 ]

@@ -52,6 +52,14 @@ button{font-family:inherit;color:inherit;border:0;background:none;padding:0;curs
 .book-count{position:absolute;right:-8px;top:-8px;display:flex;gap:3px;flex-wrap:wrap-reverse;width:52px;justify-content:flex-end}
 .book-count i{width:9px;height:9px;border-radius:50%;background:var(--pink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 
+.restart-btn{position:absolute;z-index:3;right:3.5vh;bottom:3.5vh;width:13vh;height:13vh;
+  min-width:82px;min-height:82px;border-radius:32%;background:#fff;box-shadow:var(--shadow);
+  display:grid;place-items:center}
+.restart-btn[hidden]{display:none}
+.restart-btn:active{transform:scale(.94)}
+.restart-icon{width:58%;display:grid;place-items:center}
+.restart-icon svg{width:100%;height:auto}
+
 .parent-gate{position:absolute;z-index:3;right:2.2vh;top:2.2vh;width:56px;height:56px;border-radius:50%;
   display:grid;place-items:center;color:rgba(122,91,46,.35);background:rgba(255,255,255,.5)}
 .gate-ring{position:absolute;inset:2px;border-radius:50%;border:4px solid var(--ok);
@@ -122,7 +130,8 @@ button{font-family:inherit;color:inherit;border:0;background:none;padding:0;curs
 .slot .art{width:80%;height:80%;transition:transform .25s}
 .slot.empty .art{filter:grayscale(1) brightness(1.5) contrast(.25);opacity:.4}
 .slot.got:active .art{transform:scale(.92)}
-.slot .mini-stamp{position:absolute;right:5%;bottom:5%;width:34%;height:34%;border-radius:50%;
+.slot .mini-stamp{position:absolute;right:5%;bottom:5%;width:34%;aspect-ratio:1;height:auto;
+  max-height:34%;border-radius:50%;
   border:3px solid var(--stamp);color:var(--stamp);display:grid;place-items:center;
   font-size:min(1.45vh,11px);font-weight:900;line-height:1.05;text-align:center;transform:rotate(-13deg);
   background:rgba(255,255,255,.6)}

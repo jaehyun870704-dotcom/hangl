@@ -3,7 +3,7 @@
 """
 앱 음성 54개를 한 번에 만들어 넣기
 
-  내 목소리 wav 하나로 자모 24 + 안내 6 + 캐릭터 이름 24 를 모두 합성해
+  내 목소리 wav 하나로 자모 24 + 안내 6 + 캐릭터 이름(stickers.json 개수) 을 모두 합성해
   assets/audio/<키>.wav 로 저장합니다. 앱은 그 파일을 바로 씁니다.
 
   python make_app_voices.py --list                       # 만들 문구 확인만

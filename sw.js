@@ -2,7 +2,7 @@
 // 서비스 워커 — 전체 오프라인 동작 (PRD 8)
 // 앱 파일을 갈아끼울 때는 CACHE 버전 문자열만 올리면 된다.
 // ============================================================
-const CACHE = 'hangul-trace-v2';
+const CACHE = 'hangul-trace-v3';
 
 const CORE = [
   './',
@@ -44,27 +44,39 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// stale-while-revalidate:
-//  캐시에 있으면 즉시 내주고(오프라인·즉시 실행), 뒤에서 새 파일을 받아 캐시를 갱신한다.
-//  → 코드를 고쳐 넣으면 다음 실행 때 반영된다. (cache-first만 쓰면 영원히 옛 버전이 뜬다)
+// 화면을 이루는 파일(html·js·css·json)과 소리·그림을 다르게 다룬다.
+//
+//   화면 파일 : 인터넷이 되면 늘 새것을 받는다 → 고친 것이 바로 보인다.
+//              인터넷이 없으면 저장해 둔 것으로 돈다.
+//   소리·그림 : 저장해 둔 것을 먼저 쓴다 → 용량이 크고 잘 바뀌지 않는다.
+//
+// 전에는 둘 다 «저장해 둔 것 먼저» 라서, 고친 내용이 다음 실행에야 보였다.
+const SHELL = /\.(?:html|js|css|json|webmanifest|svg)$/i;
+
+function keep(req, res) {
+  if (res && res.ok) {
+    const copy = res.clone();
+    caches.open(CACHE).then((c) => c.put(req, copy));
+  }
+  return res;
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
-  if (new URL(req.url).origin !== self.location.origin) return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+
+  if (req.mode === 'navigate' || SHELL.test(url.pathname)) {
+    e.respondWith(
+      fetch(req)
+        .then((res) => keep(req, res))
+        .catch(() => caches.match(req).then((hit) => hit || caches.match('./index.html')))
+    );
+    return;
+  }
 
   e.respondWith(
-    caches.match(req).then((hit) => {
-      const network = fetch(req)
-        .then((res) => {
-          // 스티커 이미지·음성처럼 나중에 넣은 에셋도 자동으로 캐시에 담는다
-          if (res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(req, copy));
-          }
-          return res;
-        })
-        .catch(() => hit || caches.match('./index.html'));
-      return hit || network;
-    })
+    caches.match(req).then((hit) => hit || fetch(req).then((res) => keep(req, res)))
   );
 });

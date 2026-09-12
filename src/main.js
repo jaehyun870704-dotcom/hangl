@@ -170,7 +170,18 @@ window.addEventListener('orientationchange', () => setTimeout(() => session.resi
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => { /* 오프라인 캐시 없이도 동작 */ });
+    navigator.serviceWorker.register('sw.js')
+      .then((reg) => reg.update().catch(() => {}))
+      .catch(() => { /* 오프라인 캐시 없이도 동작 */ });
+  });
+
+  // 새 버전이 준비되면 한 번만 저절로 새로고침한다.
+  // 이게 없으면 고친 내용을 보려고 사람이 두 번 새로고침해야 했다.
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloading) return;
+    reloading = true;
+    location.reload();
   });
 }
 

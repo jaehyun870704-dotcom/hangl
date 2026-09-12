@@ -34,6 +34,7 @@ function show(name, opts = {}) {
   currentScreen = name;
 
   if (name === 'home') {
+    if (location.hash) setHash('');      // 아이 화면으로 나오면 주소도 되돌린다
     updateBookBadge();
     // 하던 것이 있을 때만 «처음부터» 를 보여 준다
     btnRestart.hidden = !(state.progress.cursor > 0 || state.sessions.length > 0);
@@ -61,7 +62,11 @@ function show(name, opts = {}) {
     });
   }
   if (name === 'parent') {
-    renderParent(screens.parent, { onHome: () => show('home', { silent: true }) });
+    renderParent(screens.parent, {
+      onHome: () => show('home', { silent: true }),
+      locked: !opts.unlocked,
+      tab: opts.tab ?? null,
+    });
   }
 }
 
@@ -120,48 +125,20 @@ btnBook.addEventListener('click', () => { sfx.tap(); show('book'); });
 // 글자 고르기 — 아이가 시작할 글자를 직접 고른다
 btnPick.addEventListener('click', () => { sfx.tap(); show('pick'); });
 
-// 부모 메뉴 잠금 — 2초 길게 누르기 (PRD 7)
-//   손가락은 2초 동안 가만히 있지 못한다. 조금 움직였다고 취소하면
-//   태블릿에서는 영영 안 열린다. 그래서 포인터를 붙잡아 두고,
-//   크게(40px 넘게) 움직였을 때만 취소한다.
-const HOLD_MS = 2000;
-const HOLD_SLOP = 40;
-let holdRaf = 0, holdStart = 0, holdId = null, holdX = 0, holdY = 0;
-const ring = document.getElementById('gate-ring');
+// 톱니바퀴 — 한 번 누르면 설정(올리기) 화면으로 바로 들어간다.
+// 주소도 #voice 로 맞춰 두어, 그 주소를 즐겨찾기 해도 같은 화면이 열린다.
+btnParent.addEventListener('click', () => {
+  sfx.tap();
+  setHash('#voice');
+  show('parent', { unlocked: true, tab: 'upload' });
+});
 
-function holdBegin(e) {
-  e.preventDefault();
-  if (holdId !== null) return;
-  holdId = e.pointerId;
-  holdX = e.clientX; holdY = e.clientY;
-  try { btnParent.setPointerCapture(e.pointerId); } catch {}
-  holdStart = performance.now();
-  btnParent.classList.add('holding');
-  const step = (now) => {
-    const t = Math.min(1, (now - holdStart) / HOLD_MS);
-    ring.style.clipPath = `inset(${(1 - t) * 100}% 0 0 0)`;
-    if (t >= 1) { holdEnd(); sfx.tap(); show('parent'); return; }
-    holdRaf = requestAnimationFrame(step);
-  };
-  holdRaf = requestAnimationFrame(step);
+
+/** 주소 끝의 #표시를 바꾼다 (기록을 쌓지 않는다) */
+function setHash(hash) {
+  const want = hash || location.pathname + location.search;
+  if (location.hash !== hash) history.replaceState(null, '', want);
 }
-
-function holdMove(e) {
-  if (holdId === null || e.pointerId !== holdId) return;
-  if (Math.hypot(e.clientX - holdX, e.clientY - holdY) > HOLD_SLOP) holdEnd(e);
-}
-
-function holdEnd(e) {
-  if (e && holdId !== null) { try { btnParent.releasePointerCapture(holdId); } catch {} }
-  holdId = null;
-  cancelAnimationFrame(holdRaf);
-  btnParent.classList.remove('holding');
-  ring.style.clipPath = 'inset(100% 0 0 0)';
-}
-
-btnParent.addEventListener('pointerdown', holdBegin);
-btnParent.addEventListener('pointermove', holdMove);
-['pointerup', 'pointercancel'].forEach((ev) => btnParent.addEventListener(ev, holdEnd));
 
 // ── 세션 ────────────────────────────────────────────────
 const session = createSessionScreen({
@@ -196,16 +173,27 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// 시작할 때의 주소를 먼저 기억해 둔다.
+// show('home') 이 주소를 비우기 때문에 그 전에 읽어야 한다.
+const startHash = location.hash;
+
 show('home', { silent: true });
 
-// 주소 끝에 #record 를 붙이면 녹음 화면이 바로 열린다 (부모가 직접 여는 지름길)
-//   http://localhost:8000/#record  → 녹음 스튜디오까지 한 번에
-//   http://localhost:8000/#voice   → 성우 녹음 화면까지만
-if (location.hash === '#record' || location.hash === '#voice') {
-  show('parent');
-  requestAnimationFrame(() => {
-    screens.parent.querySelector('.lock')?.remove();   // 아이가 아니라 부모가 연 것
-    screens.parent.querySelector('#voice-section')?.scrollIntoView({ block: 'start' });
-    if (location.hash === '#record') screens.parent.querySelector('#rec-start')?.click();
-  });
+// 주소 끝에 #voice 를 붙이면 설정(올리기) 화면이, #record 면 녹음까지 바로 열린다
+if (startHash === '#record' || startHash === '#voice') {
+  openSettings(startHash === '#record');
+}
+
+// 앱이 켜져 있는 상태에서 주소만 바꿔도 열리게 한다 (즐겨찾기로 들어오는 경우)
+window.addEventListener('hashchange', () => {
+  if (location.hash === '#voice' || location.hash === '#record') {
+    openSettings(location.hash === '#record');
+  }
+});
+
+function openSettings(startRecording) {
+  show('parent', { unlocked: true, tab: 'upload' });
+  if (startRecording) {
+    requestAnimationFrame(() => screens.parent.querySelector('#rec-start')?.click());
+  }
 }

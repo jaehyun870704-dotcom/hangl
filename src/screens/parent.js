@@ -17,13 +17,21 @@ const mmss = (ms) => {
   return `${Math.floor(s / 60)}분 ${String(s % 60).padStart(2, '0')}초`;
 };
 
-export function renderParent(root, { onHome }) {
+/**
+ * 부모(관리자) 화면.
+ * locked=false 면 산수 확인 없이 바로 들어간다 — 톱니바퀴를 눌러 들어온 경우.
+ * tab 을 주면 그 탭을 열어 둔다.
+ */
+export function renderParent(root, { onHome, locked = true, tab = null }) {
   root.innerHTML = '';
   const wrap = document.createElement('div');
   wrap.className = 'parent-wrap';
   root.appendChild(wrap);
 
-  // ── 잠금 화면 ───────────────────────────────────────────
+  // ── 잠금 화면 (locked 일 때만) ───────────────────────────
+  if (locked) buildLock();
+
+  function buildLock() {
   const lock = document.createElement('div');
   lock.className = 'lock';
   const a = 3 + Math.floor(Math.random() * 7);
@@ -59,6 +67,7 @@ export function renderParent(root, { onHome }) {
     pad.appendChild(btn);
   });
   lock.querySelector('#lock-cancel').addEventListener('click', () => onHome?.());
+  }
 
   // ── 본문 ────────────────────────────────────────────────
   const p = state.progress;
@@ -283,7 +292,7 @@ export function renderParent(root, { onHome }) {
       return;
     }
     resetProgress();
-    renderParent(root, { onHome });
+    renderParent(root, { onHome, locked: false, tab: 'settings' });
     root.querySelector('.lock')?.remove();
   });
   resetRow.appendChild(resetBtn);
@@ -293,5 +302,5 @@ export function renderParent(root, { onHome }) {
   panels.settings.insertAdjacentHTML('beforeend',
     '<div class="empty-note" style="margin-top:18px">모든 데이터는 이 기기에만 저장됩니다. 계정·서버 전송·광고·결제 없음.</div>');
 
-  showTab(location.hash === '#voice' || location.hash === '#record' ? 'upload' : 'progress');
+  showTab(tab || (location.hash === '#voice' || location.hash === '#record' ? 'upload' : 'progress'));
 }

@@ -145,6 +145,7 @@ const session = createSessionScreen({
   canvas: document.getElementById('trace-canvas'),
   dotsEl: document.getElementById('progress-dots'),
   fxEl: document.getElementById('fx-layer'),
+  wordEl: document.getElementById('letter-word'),
   demoBtn: document.getElementById('btn-demo'),
   redoBtn: document.getElementById('btn-redo'),
   escapeBtn: document.getElementById('btn-escape'),

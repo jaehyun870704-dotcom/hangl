@@ -32,6 +32,7 @@
     <div class="home-main">
       <button class="big-start" id="btn-start" aria-label="오늘의 학습 시작">
         <span class="start-face" id="start-face"></span>
+        <span class="btn-label">이어하기</span>
         <span class="start-pencil">
           <svg viewBox="0 0 64 64" width="86" height="86" aria-hidden="true">
             <path d="M12 52l3-11 27-27a5 5 0 0 1 7 0l1 1a5 5 0 0 1 0 7L23 49z" fill="#FFC86B" stroke="#7A5B2E" stroke-width="3" stroke-linejoin="round"/>
@@ -53,14 +54,17 @@
           <circle cx="44" cy="40" r="5" fill="#FFE9A8"/>
         </svg>
       </span>
+      <span class="btn-label small">스티커</span>
       <span class="book-count" id="book-count"></span>
     </button>
 
     <button class="pick-btn" id="btn-pick" aria-label="글자 고르기">
       <span class="pick-letters"><b>ㄱ</b><b>ㄴ</b><b>ㄷ</b></span>
+      <span class="btn-label small">글자 고르기</span>
     </button>
 
     <button class="restart-btn" id="btn-restart" aria-label="처음부터 하기" hidden>
+      <span class="btn-label small">처음하기</span>
       <span class="restart-icon">
         <svg viewBox="0 0 64 64" width="46" height="46" aria-hidden="true">
           <rect x="14" y="17" width="7" height="30" rx="3.5" fill="#7A5B2E"/>
@@ -97,6 +101,7 @@
       </button>
     </div>
     <canvas id="trace-canvas"></canvas>
+    <div class="letter-word" id="letter-word"></div>
     <div class="fx-layer" id="fx-layer"></div>
   </section>
 
@@ -112,15 +117,6 @@
   <!-- ─────────────── 부모 메뉴 ─────────────── -->
   <section class="screen" id="screen-parent" data-screen="parent"></section>
 
-</div>
-
-<div id="rotate-hint" hidden>
-  <svg viewBox="0 0 120 80" width="160" height="110" aria-hidden="true">
-    <rect x="8" y="10" width="44" height="62" rx="7" fill="#fff" stroke="#7A5B2E" stroke-width="4"/>
-    <rect x="66" y="22" width="46" height="34" rx="7" fill="#FFE9A8" stroke="#7A5B2E" stroke-width="4"/>
-    <path d="M56 40c2-8 6-10 8-10" stroke="#7A5B2E" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <path d="M60 24l6 6-8 3z" fill="#7A5B2E"/>
-  </svg>
 </div>
 
 <script type="module" src="src/main.js"></script>

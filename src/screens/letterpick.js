@@ -36,8 +36,9 @@ export function renderLetterPick(root, { onHome, onPick } = {}) {
   JAMO.forEach((j, i) => {
     const cell = document.createElement('button');
     cell.className = 'pick-cell';
-    cell.textContent = j.ch;
-    cell.setAttribute('aria-label', j.name);
+    cell.innerHTML = `<b class="pc-ch">${j.ch}</b>`
+      + (j.emoji ? `<span class="pc-word">${j.emoji} ${j.word}</span>` : '');
+    cell.setAttribute('aria-label', `${j.name} ${j.word ?? ''}`);
 
     const passed = (p.stats?.[j.id]?.passes ?? 0) > 0;
     const again = p.weak?.includes(j.id);

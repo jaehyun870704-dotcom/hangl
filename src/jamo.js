@@ -18,87 +18,87 @@ function circle(cx, cy, r, startDeg = -90, ccw = true, steps = 44) {
 
 export const JAMO = [
   // ── 자음 14자 ──
-  { id: 'g',  ch: 'ㄱ', name: '기역', kind: 'consonant', strokes: [[[0.22, 0.22], [0.78, 0.22], [0.64, 0.80]]] },
-  { id: 'n',  ch: 'ㄴ', name: '니은', kind: 'consonant', strokes: [[[0.28, 0.18], [0.28, 0.78], [0.80, 0.78]]] },
-  { id: 'd',  ch: 'ㄷ', name: '디귿', kind: 'consonant', strokes: [
+  { id: 'g',  ch: 'ㄱ', name: '기역', word: '가방', emoji: '🎒', kind: 'consonant', strokes: [[[0.22, 0.22], [0.78, 0.22], [0.64, 0.80]]] },
+  { id: 'n',  ch: 'ㄴ', name: '니은', word: '나비', emoji: '🦋', kind: 'consonant', strokes: [[[0.28, 0.18], [0.28, 0.78], [0.80, 0.78]]] },
+  { id: 'd',  ch: 'ㄷ', name: '디귿', word: '도넛', emoji: '🍩', kind: 'consonant', strokes: [
       [[0.22, 0.22], [0.78, 0.22]],
       [[0.22, 0.22], [0.22, 0.78], [0.78, 0.78]] ] },
-  { id: 'r',  ch: 'ㄹ', name: '리을', kind: 'consonant', strokes: [
+  { id: 'r',  ch: 'ㄹ', name: '리을', word: '라면', emoji: '🍜', kind: 'consonant', strokes: [
       [[0.22, 0.18], [0.78, 0.18], [0.78, 0.46]],
       [[0.22, 0.46], [0.78, 0.46]],
       [[0.22, 0.46], [0.22, 0.78], [0.78, 0.78]] ] },
-  { id: 'm',  ch: 'ㅁ', name: '미음', kind: 'consonant', strokes: [
+  { id: 'm',  ch: 'ㅁ', name: '미음', word: '모자', emoji: '🧢', kind: 'consonant', strokes: [
       [[0.24, 0.20], [0.24, 0.80]],
       [[0.24, 0.20], [0.76, 0.20], [0.76, 0.80]],
       [[0.24, 0.80], [0.76, 0.80]] ] },
-  { id: 'b',  ch: 'ㅂ', name: '비읍', kind: 'consonant', strokes: [
+  { id: 'b',  ch: 'ㅂ', name: '비읍', word: '바나나', emoji: '🍌', kind: 'consonant', strokes: [
       [[0.24, 0.18], [0.24, 0.82]],
       [[0.76, 0.18], [0.76, 0.82]],
       [[0.24, 0.52], [0.76, 0.52]],
       [[0.24, 0.82], [0.76, 0.82]] ] },
-  { id: 's',  ch: 'ㅅ', name: '시옷', kind: 'consonant', strokes: [
+  { id: 's',  ch: 'ㅅ', name: '시옷', word: '사과', emoji: '🍎', kind: 'consonant', strokes: [
       [[0.50, 0.20], [0.24, 0.82]],
       [[0.44, 0.34], [0.78, 0.82]] ] },
-  { id: 'ng', ch: 'ㅇ', name: '이응', kind: 'consonant', strokes: [circle(0.50, 0.50, 0.30)] },
-  { id: 'j',  ch: 'ㅈ', name: '지읒', kind: 'consonant', strokes: [
+  { id: 'ng', ch: 'ㅇ', name: '이응', word: '우산', emoji: '☂️', kind: 'consonant', strokes: [circle(0.50, 0.50, 0.30)] },
+  { id: 'j',  ch: 'ㅈ', name: '지읒', word: '자동차', emoji: '🚗', kind: 'consonant', strokes: [
       [[0.20, 0.26], [0.80, 0.26]],
       [[0.50, 0.26], [0.24, 0.82]],
       [[0.50, 0.26], [0.78, 0.82]] ] },
-  { id: 'ch', ch: 'ㅊ', name: '치읓', kind: 'consonant', strokes: [
+  { id: 'ch', ch: 'ㅊ', name: '치읓', word: '치즈', emoji: '🧀', kind: 'consonant', strokes: [
       [[0.40, 0.14], [0.60, 0.14]],
       [[0.18, 0.34], [0.82, 0.34]],
       [[0.50, 0.34], [0.24, 0.84]],
       [[0.50, 0.34], [0.78, 0.84]] ] },
-  { id: 'k',  ch: 'ㅋ', name: '키읔', kind: 'consonant', strokes: [
+  { id: 'k',  ch: 'ㅋ', name: '키읔', word: '코끼리', emoji: '🐘', kind: 'consonant', strokes: [
       [[0.22, 0.22], [0.78, 0.22], [0.64, 0.80]],
       [[0.30, 0.50], [0.72, 0.50]] ] },
-  { id: 't',  ch: 'ㅌ', name: '티읕', kind: 'consonant', strokes: [
+  { id: 't',  ch: 'ㅌ', name: '티읕', word: '토끼', emoji: '🐰', kind: 'consonant', strokes: [
       [[0.22, 0.22], [0.78, 0.22]],
       [[0.22, 0.50], [0.78, 0.50]],
       [[0.22, 0.22], [0.22, 0.78], [0.78, 0.78]] ] },
-  { id: 'p',  ch: 'ㅍ', name: '피읖', kind: 'consonant', strokes: [
+  { id: 'p',  ch: 'ㅍ', name: '피읖', word: '포도', emoji: '🍇', kind: 'consonant', strokes: [
       [[0.18, 0.26], [0.82, 0.26]],
       [[0.32, 0.26], [0.32, 0.74]],
       [[0.68, 0.26], [0.68, 0.74]],
       [[0.18, 0.74], [0.82, 0.74]] ] },
-  { id: 'h',  ch: 'ㅎ', name: '히읗', kind: 'consonant', strokes: [
+  { id: 'h',  ch: 'ㅎ', name: '히읗', word: '하마', emoji: '🦛', kind: 'consonant', strokes: [
       [[0.40, 0.12], [0.60, 0.12]],
       [[0.22, 0.30], [0.78, 0.30]],
       circle(0.50, 0.63, 0.21) ] },
 
   // ── 모음 10자 ──
-  { id: 'a',   ch: 'ㅏ', name: '아', kind: 'vowel', strokes: [
+  { id: 'a',   ch: 'ㅏ', name: '아', word: '아기', emoji: '👶', kind: 'vowel', strokes: [
       [[0.46, 0.12], [0.46, 0.88]],
       [[0.46, 0.50], [0.78, 0.50]] ] },
-  { id: 'ya',  ch: 'ㅑ', name: '야', kind: 'vowel', strokes: [
+  { id: 'ya',  ch: 'ㅑ', name: '야', word: '야구', emoji: '⚾', kind: 'vowel', strokes: [
       [[0.46, 0.12], [0.46, 0.88]],
       [[0.46, 0.36], [0.78, 0.36]],
       [[0.46, 0.64], [0.78, 0.64]] ] },
   // ㅓ·ㅕ 는 짧은 가로획을 먼저 긋고 세로획을 나중에 긋는다.
   // (왼쪽에서 오른쪽 원칙 — ㅏ·ㅑ 와 순서가 반대다)
-  { id: 'eo',  ch: 'ㅓ', name: '어', kind: 'vowel', strokes: [
+  { id: 'eo',  ch: 'ㅓ', name: '어', word: '어항', emoji: '🐠', kind: 'vowel', strokes: [
       [[0.26, 0.50], [0.58, 0.50]],
       [[0.58, 0.12], [0.58, 0.88]] ] },
-  { id: 'yeo', ch: 'ㅕ', name: '여', kind: 'vowel', strokes: [
+  { id: 'yeo', ch: 'ㅕ', name: '여', word: '여우', emoji: '🦊', kind: 'vowel', strokes: [
       [[0.26, 0.36], [0.58, 0.36]],
       [[0.26, 0.64], [0.58, 0.64]],
       [[0.58, 0.12], [0.58, 0.88]] ] },
-  { id: 'o',   ch: 'ㅗ', name: '오', kind: 'vowel', strokes: [
+  { id: 'o',   ch: 'ㅗ', name: '오', word: '오리', emoji: '🦆', kind: 'vowel', strokes: [
       [[0.50, 0.26], [0.50, 0.62]],
       [[0.16, 0.62], [0.84, 0.62]] ] },
-  { id: 'yo',  ch: 'ㅛ', name: '요', kind: 'vowel', strokes: [
+  { id: 'yo',  ch: 'ㅛ', name: '요', word: '요구르트', emoji: '🥛', kind: 'vowel', strokes: [
       [[0.36, 0.26], [0.36, 0.62]],
       [[0.64, 0.26], [0.64, 0.62]],
       [[0.16, 0.62], [0.84, 0.62]] ] },
-  { id: 'u',   ch: 'ㅜ', name: '우', kind: 'vowel', strokes: [
+  { id: 'u',   ch: 'ㅜ', name: '우', word: '우유', emoji: '🥛', kind: 'vowel', strokes: [
       [[0.16, 0.38], [0.84, 0.38]],
       [[0.50, 0.38], [0.50, 0.76]] ] },
-  { id: 'yu',  ch: 'ㅠ', name: '유', kind: 'vowel', strokes: [
+  { id: 'yu',  ch: 'ㅠ', name: '유', word: '유리병', emoji: '🍶', kind: 'vowel', strokes: [
       [[0.16, 0.38], [0.84, 0.38]],
       [[0.36, 0.38], [0.36, 0.76]],
       [[0.64, 0.38], [0.64, 0.76]] ] },
-  { id: 'eu',  ch: 'ㅡ', name: '으', kind: 'vowel', strokes: [[[0.14, 0.50], [0.86, 0.50]]] },
-  { id: 'i',   ch: 'ㅣ', name: '이', kind: 'vowel', strokes: [[[0.50, 0.12], [0.50, 0.88]]] },
+  { id: 'eu',  ch: 'ㅡ', name: '으', word: '그네', emoji: '🛝', kind: 'vowel', strokes: [[[0.14, 0.50], [0.86, 0.50]]] },
+  { id: 'i',   ch: 'ㅣ', name: '이', word: '이불', emoji: '🛏️', kind: 'vowel', strokes: [[[0.50, 0.12], [0.50, 0.88]]] },
 ];
 
 export const JAMO_BY_ID = Object.fromEntries(JAMO.map((j) => [j.id, j]));

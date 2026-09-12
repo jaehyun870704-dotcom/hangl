@@ -35,7 +35,7 @@ export function composeSession({ skipWeak = false } = {}) {
 }
 
 export function createSessionScreen(deps) {
-  const { canvas, dotsEl, fxEl, demoBtn, redoBtn, escapeBtn, onFinished, onExit } = deps;
+  const { canvas, dotsEl, fxEl, wordEl, demoBtn, redoBtn, escapeBtn, onFinished, onExit } = deps;
 
   let tracer = null;
   let letters = [];
@@ -120,6 +120,9 @@ export function createSessionScreen(deps) {
       guideScale: attempt > 1 ? 1.3 : 1,   // 재시도 시 점선을 굵게 (PRD 5.4)
     });
     tracer.enable(false);
+
+    // 이 글자로 시작하는 낱말을 함께 보여 준다 (그림이 있어 못 읽어도 안다)
+    if (wordEl) wordEl.innerHTML = j.emoji ? `<b>${j.emoji}</b><span>${j.word}</span>` : '';
 
     say(`jamo-${j.id}`);                  // 등장 시 1회 자동 재생 (PRD 4.2)
 

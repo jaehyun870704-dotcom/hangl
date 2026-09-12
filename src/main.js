@@ -109,28 +109,48 @@ btnBook.addEventListener('click', () => { sfx.tap(); show('book'); });
 // 글자 고르기 — 아이가 시작할 글자를 직접 고른다
 btnPick.addEventListener('click', () => { sfx.tap(); show('pick'); });
 
-// 부모 메뉴 잠금 — 3초 길게 누르기 (PRD 7)
-let holdRaf = 0, holdStart = 0;
+// 부모 메뉴 잠금 — 2초 길게 누르기 (PRD 7)
+//   손가락은 2초 동안 가만히 있지 못한다. 조금 움직였다고 취소하면
+//   태블릿에서는 영영 안 열린다. 그래서 포인터를 붙잡아 두고,
+//   크게(40px 넘게) 움직였을 때만 취소한다.
+const HOLD_MS = 2000;
+const HOLD_SLOP = 40;
+let holdRaf = 0, holdStart = 0, holdId = null, holdX = 0, holdY = 0;
 const ring = document.getElementById('gate-ring');
+
 function holdBegin(e) {
   e.preventDefault();
+  if (holdId !== null) return;
+  holdId = e.pointerId;
+  holdX = e.clientX; holdY = e.clientY;
+  try { btnParent.setPointerCapture(e.pointerId); } catch {}
   holdStart = performance.now();
   btnParent.classList.add('holding');
   const step = (now) => {
-    const t = Math.min(1, (now - holdStart) / 3000);
+    const t = Math.min(1, (now - holdStart) / HOLD_MS);
     ring.style.clipPath = `inset(${(1 - t) * 100}% 0 0 0)`;
     if (t >= 1) { holdEnd(); sfx.tap(); show('parent'); return; }
     holdRaf = requestAnimationFrame(step);
   };
   holdRaf = requestAnimationFrame(step);
 }
-function holdEnd() {
+
+function holdMove(e) {
+  if (holdId === null || e.pointerId !== holdId) return;
+  if (Math.hypot(e.clientX - holdX, e.clientY - holdY) > HOLD_SLOP) holdEnd(e);
+}
+
+function holdEnd(e) {
+  if (e && holdId !== null) { try { btnParent.releasePointerCapture(holdId); } catch {} }
+  holdId = null;
   cancelAnimationFrame(holdRaf);
   btnParent.classList.remove('holding');
   ring.style.clipPath = 'inset(100% 0 0 0)';
 }
+
 btnParent.addEventListener('pointerdown', holdBegin);
-['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => btnParent.addEventListener(ev, holdEnd));
+btnParent.addEventListener('pointermove', holdMove);
+['pointerup', 'pointercancel'].forEach((ev) => btnParent.addEventListener(ev, holdEnd));
 
 // ── 세션 ────────────────────────────────────────────────
 const session = createSessionScreen({

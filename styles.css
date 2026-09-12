@@ -348,3 +348,22 @@ h3.rec-group small{font-weight:400;color:#B3A38A;margin-left:6px;font-size:11.5p
   .friend-row{grid-template-columns:40px 1fr;row-gap:6px}
   .friend-row .mini{grid-column:2}
 }
+
+/* ─────────── 스티커 도감 (크게 보기) ─────────── */
+.dex{position:absolute;inset:0;z-index:20;background:rgba(60,46,26,.45);
+  display:grid;place-items:center;animation:dexin .22s ease-out}
+@keyframes dexin{from{opacity:0}to{opacity:1}}
+.dex-card{position:relative;width:min(62vh,78vw);max-width:520px;background:#FFFDF7;
+  border-radius:32px;padding:4vh 3vh 3vh;display:grid;place-items:center;gap:1.5vh;
+  box-shadow:0 24px 60px rgba(0,0,0,.3);animation:dexpop .3s cubic-bezier(.2,1.4,.4,1)}
+@keyframes dexpop{from{transform:scale(.8)}to{transform:scale(1)}}
+.dex-card.empty{background:#F6EEE2}
+.dex-num{position:absolute;left:22px;top:18px;font-size:min(2.4vh,17px);font-weight:800;color:#C6B79C}
+.dex-art{width:min(38vh,52vw);height:min(38vh,52vw)}
+.dex-card.empty .dex-art{filter:grayscale(1) brightness(1.5) contrast(.25);opacity:.45}
+.dex-name{font-size:min(4.2vh,30px);font-weight:800;color:var(--ink);text-align:center}
+.dex-card.empty .dex-name{color:#B3A38A;font-size:min(3vh,21px)}
+.dex-stamp{position:absolute;right:5%;bottom:6%;width:min(13vh,20vw);aspect-ratio:1;border-radius:50%;
+  border:5px solid var(--stamp);color:var(--stamp);display:grid;place-items:center;
+  font-size:min(2.2vh,16px);font-weight:900;line-height:1.1;text-align:center;
+  transform:rotate(-13deg);background:rgba(255,255,255,.6)}

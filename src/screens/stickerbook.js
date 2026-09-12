@@ -5,8 +5,8 @@
 //  - 받은 스티커를 누르면 움직이고 이름을 말한다
 //  - 도장을 누르면 "참 잘했어요!" 재생
 // ============================================================
-import { stickerArt, stickerVoiceKey, stickerCount, loadStickerMeta } from '../stickers.js';
-import { say, sfx } from '../audio.js';
+import { stickerArt, stickerVoiceKey, stickerLabel, stickerCount, loadStickerMeta } from '../stickers.js';
+import { say, sfx, stopVoice } from '../audio.js';
 import { state } from '../store.js';
 
 
@@ -67,19 +67,15 @@ export async function renderStickerBook(root, { onHome, onContinue, highlight = 
         });
         cell.appendChild(st);
 
-        cell.addEventListener('click', () => {
-          const art = cell.querySelector('.art');
-          art.classList.remove('wiggle');
-          void art.offsetWidth;
-          art.classList.add('wiggle');
-          sfx.pop();
-          say(stickerVoiceKey(slot));
-        });
+        cell.addEventListener('click', () => openDex(slot, true));
 
         if (highlight === slot) {
           cell.style.boxShadow = 'inset 0 0 0 5px #4CB8A0';
           setTimeout(() => cell.querySelector('.art')?.classList.add('wiggle'), 250);
         }
+      } else {
+        // 아직 못 만난 친구도 눌러 볼 수 있다 — 도감처럼 실루엣으로 보여 준다
+        cell.addEventListener('click', () => openDex(slot, false));
       }
       page.appendChild(cell);
     }
@@ -118,6 +114,62 @@ export async function renderStickerBook(root, { onHome, onContinue, highlight = 
       </svg>`;
     go2.addEventListener('click', () => { sfx.tap(); onContinue(); });
     wrap.appendChild(go2);
+  }
+
+  /**
+   * 도감 — 친구 하나를 크게 본다.
+   * 아직 못 만난 친구는 실루엣으로 보여 준다 (다음 목표 시각화, PRD 6.3)
+   */
+  function openDex(slot, owned) {
+    const dex = document.createElement('div');
+    dex.className = 'dex';
+
+    const card = document.createElement('div');
+    card.className = `dex-card ${owned ? 'got' : 'empty'}`;
+
+    const num = document.createElement('div');
+    num.className = 'dex-num';
+    num.textContent = `${slot} / ${TOTAL}`;
+    card.appendChild(num);
+
+    const art = stickerArt(slot);
+    art.classList.add('dex-art');
+    card.appendChild(art);
+
+    const name = document.createElement('div');
+    name.className = 'dex-name';
+    name.textContent = owned ? stickerLabel(slot) : '아직 못 만났어요';
+    card.appendChild(name);
+
+    if (owned) {
+      const stamp = document.createElement('div');
+      stamp.className = 'dex-stamp';
+      stamp.innerHTML = '참<br>잘했어요';
+      card.appendChild(stamp);
+    }
+
+    dex.appendChild(card);
+    root.appendChild(dex);
+
+    if (owned) {
+      sfx.pop();
+      say(stickerVoiceKey(slot));
+      setTimeout(() => art.classList.add('wiggle'), 120);
+    } else {
+      sfx.tap();
+    }
+
+    const close = () => { stopVoice(); dex.remove(); };
+    dex.addEventListener('click', close);
+    card.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!owned) return;
+      sfx.pop();
+      say(stickerVoiceKey(slot));
+      art.classList.remove('wiggle');
+      void art.offsetWidth;
+      art.classList.add('wiggle');
+    });
   }
 
   root.appendChild(wrap);

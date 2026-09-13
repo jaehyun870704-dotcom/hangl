@@ -3,7 +3,8 @@
 //  아이 화면에는 텍스트가 없다. 아이콘과 음성으로만 안내한다.
 // ============================================================
 import { load, state, todaySessionCount, restartCurriculum, startFromLetter,
-  markFinishedOnce } from './store.js';
+  markFinishedOnce, setStage, completedLetters } from './store.js';
+import { STAGES } from './curriculum.js';
 import { loadStickerMeta, stickerArt } from './stickers.js';
 import { initVoiceBank } from './voicebank.js';
 import { unlock, say, sfx, stopVoice } from './audio.js';
@@ -36,6 +37,7 @@ function show(name, opts = {}) {
   if (name === 'home') {
     if (location.hash) setHash('');      // 아이 화면으로 나오면 주소도 되돌린다
     updateBookBadge();
+    renderStageBar();
     // 하던 것이 있을 때만 «처음부터» 를 보여 준다
     btnRestart.hidden = !(state.progress.cursor > 0 || state.sessions.length > 0);
     if (audioReady && !opts.silent) {
@@ -86,6 +88,34 @@ const btnParent = document.getElementById('btn-parent');
 const btnRestart = document.getElementById('btn-restart');
 const btnPick = document.getElementById('btn-pick');
 const badge = document.getElementById('book-count');
+const stageBar = document.getElementById('stage-bar');
+
+/**
+ * 단계 고르기 — 1 자모 · 2 글자 · 3 낱말.
+ * 잠그지 않는다. 아이가 아무 단계나 눌러 볼 수 있고,
+ * 어디까지 했는지는 밑줄 길이로 보인다.
+ */
+function renderStageBar() {
+  if (!stageBar) return;
+  const here = state.stage.id;
+  stageBar.innerHTML = '';
+  for (const s of STAGES) {
+    const done = completedLetters(s.id).length;
+    const all = s.items.length;
+    const btn = document.createElement('button');
+    btn.className = `stage-btn ${s.id === here ? 'on' : ''}`;
+    btn.setAttribute('aria-label', `${s.no}단계 ${s.name} · ${all}개 중 ${done}개 했어요`);
+    btn.innerHTML = `<b>${s.no}. ${s.name}</b><small>${s.short}</small>`
+      + `<span class="bar"><i style="width:${Math.round((done / all) * 100)}%"></i></span>`;
+    btn.addEventListener('click', () => {
+      if (s.id === here) return;
+      sfx.tap();
+      setStage(s.id);
+      show('home', { silent: true });
+    });
+    stageBar.appendChild(btn);
+  }
+}
 
 function updateBookBadge() {
   const owned = state.progress.stickers;
@@ -177,9 +207,13 @@ if ('serviceWorker' in navigator) {
 
   // 새 버전이 준비되면 한 번만 저절로 새로고침한다.
   // 이게 없으면 고친 내용을 보려고 사람이 두 번 새로고침해야 했다.
+  //
+  // 단, 맨 처음 설치될 때는 새로고침하지 않는다. 그때는 이미 최신이고,
+  // 새로고침하면 주소 끝의 #voice 같은 것이 날아가 엉뚱한 화면이 열린다.
+  const hadController = !!navigator.serviceWorker.controller;
   let reloading = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (reloading) return;
+    if (!hadController || reloading) return;
     reloading = true;
     location.reload();
   });

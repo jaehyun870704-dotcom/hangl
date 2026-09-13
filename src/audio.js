@@ -82,8 +82,11 @@ export function say(key, text) {
     return;
   }
   // ② 음성 파일 → ③ TTS
-  // 「녹음된 목소리만」을 켜 두면 기계음으로 대신 읽지 않고 조용히 넘어간다
-  const allowTTS = !state.settings.onlyRecordedVoice;
+  // 「녹음된 목소리만」을 켜 두면 기계음으로 대신 읽지 않고 조용히 넘어간다.
+  // 다만 2·3단계 글자(say-…)는 녹음 대상이 아니라 예외로 둔다 —
+  // 여기까지 막으면 그 단계가 통째로 소리 없이 돌아간다.
+  const optional = !!key && key.startsWith('say-');
+  const allowTTS = optional || !state.settings.onlyRecordedVoice;
   if (key) playFile(key, () => { if (words && allowTTS) speak(words); });
   else if (words && allowTTS) speak(words);
 }

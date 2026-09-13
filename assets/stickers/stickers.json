@@ -1,12 +1,38 @@
-[
-  { "id": 1,  "file": "01.png", "name": "반짝이", "trait": "별",     "voice": "sticker-01.mp3" },
-  { "id": 2,  "file": "02.png", "name": "뭉게",   "trait": "구름",   "voice": "sticker-02.mp3" },
-  { "id": 3,  "file": "03.png", "name": "콩닥이", "trait": "하트",   "voice": "sticker-03.mp3" },
-  { "id": 4,  "file": "04.png", "name": "알록이", "trait": "무지개", "voice": "sticker-04.mp3" },
-  { "id": 5,  "file": "05.png", "name": "쿨쿨이", "trait": "달",     "voice": "sticker-05.mp3" },
-  { "id": 6,  "file": "06.png", "name": "방긋이", "trait": "꽃",     "voice": "sticker-06.mp3" },
-  { "id": 7,  "file": "07.png", "name": "사르르", "trait": "눈송이", "voice": "sticker-07.mp3" },
-  { "id": 8,  "file": "08.png", "name": "톡톡이", "trait": "물방울", "voice": "sticker-08.mp3" },
-  { "id": 9,  "file": "09.png", "name": "폭신이", "trait": "솜사탕", "voice": "sticker-09.mp3" },
-  { "id": 10, "file": "10.png", "name": "깜빡이", "trait": "반딧불", "voice": "sticker-10.mp3" }
-]
+{
+  "jamo": [
+    { "id": 1,  "file": "01.png", "name": "반짝이", "trait": "별",     "voice": "sticker-01.mp3" },
+    { "id": 2,  "file": "02.png", "name": "뭉게",   "trait": "구름",   "voice": "sticker-02.mp3" },
+    { "id": 3,  "file": "03.png", "name": "콩닥이", "trait": "하트",   "voice": "sticker-03.mp3" },
+    { "id": 4,  "file": "04.png", "name": "알록이", "trait": "무지개", "voice": "sticker-04.mp3" },
+    { "id": 5,  "file": "05.png", "name": "쿨쿨이", "trait": "달",     "voice": "sticker-05.mp3" },
+    { "id": 6,  "file": "06.png", "name": "방긋이", "trait": "꽃",     "voice": "sticker-06.mp3" },
+    { "id": 7,  "file": "07.png", "name": "사르르", "trait": "눈송이", "voice": "sticker-07.mp3" },
+    { "id": 8,  "file": "08.png", "name": "톡톡이", "trait": "물방울", "voice": "sticker-08.mp3" },
+    { "id": 9,  "file": "09.png", "name": "폭신이", "trait": "솜사탕", "voice": "sticker-09.mp3" },
+    { "id": 10, "file": "10.png", "name": "깜빡이", "trait": "반딧불", "voice": "sticker-10.mp3" }
+  ],
+  "syllable": [
+    { "id": 1,  "file": "s2-01.png", "name": "새콤이", "trait": "딸기",       "voice": "sticker-s2-01.mp3" },
+    { "id": 2,  "file": "s2-02.png", "name": "아삭이", "trait": "사과",       "voice": "sticker-s2-02.mp3" },
+    { "id": 3,  "file": "s2-03.png", "name": "시큼이", "trait": "레몬",       "voice": "sticker-s2-03.mp3" },
+    { "id": 4,  "file": "s2-04.png", "name": "시원이", "trait": "수박",       "voice": "sticker-s2-04.mp3" },
+    { "id": 5,  "file": "s2-05.png", "name": "살살이", "trait": "아이스크림", "voice": "sticker-s2-05.mp3" },
+    { "id": 6,  "file": "s2-06.png", "name": "달콤이", "trait": "컵케이크",   "voice": "sticker-s2-06.mp3" },
+    { "id": 7,  "file": "s2-07.png", "name": "동글이", "trait": "사탕",       "voice": "sticker-s2-07.mp3" },
+    { "id": 8,  "file": "s2-08.png", "name": "바삭이", "trait": "쿠키",       "voice": "sticker-s2-08.mp3" },
+    { "id": 9,  "file": "s2-09.png", "name": "하양이", "trait": "우유",       "voice": "sticker-s2-09.mp3" },
+    { "id": 10, "file": "s2-10.png", "name": "빨강이", "trait": "체리",       "voice": "sticker-s2-10.mp3" }
+  ],
+  "word": [
+    { "id": 1,  "file": "s3-01.png", "name": "야옹이",   "trait": "고양이", "voice": "sticker-s3-01.mp3" },
+    { "id": 2,  "file": "s3-02.png", "name": "멍멍이",   "trait": "강아지", "voice": "sticker-s3-02.mp3" },
+    { "id": 3,  "file": "s3-03.png", "name": "깡총이",   "trait": "토끼",   "voice": "sticker-s3-03.mp3" },
+    { "id": 4,  "file": "s3-04.png", "name": "어흥이",   "trait": "곰",     "voice": "sticker-s3-04.mp3" },
+    { "id": 5,  "file": "s3-05.png", "name": "살금이",   "trait": "여우",   "voice": "sticker-s3-05.mp3" },
+    { "id": 6,  "file": "s3-06.png", "name": "뒤뚱이",   "trait": "펭귄",   "voice": "sticker-s3-06.mp3" },
+    { "id": 7,  "file": "s3-07.png", "name": "삐약이",   "trait": "병아리", "voice": "sticker-s3-07.mp3" },
+    { "id": 8,  "file": "s3-08.png", "name": "폴짝이",   "trait": "개구리", "voice": "sticker-s3-08.mp3" },
+    { "id": 9,  "file": "s3-09.png", "name": "두리번이", "trait": "부엉이", "voice": "sticker-s3-09.mp3" },
+    { "id": 10, "file": "s3-10.png", "name": "느릿이",   "trait": "거북이", "voice": "sticker-s3-10.mp3" }
+  ]
+}

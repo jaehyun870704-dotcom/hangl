@@ -2,7 +2,7 @@
 // 서비스 워커 — 전체 오프라인 동작 (PRD 8)
 // 앱 파일을 갈아끼울 때는 CACHE 버전 문자열만 올리면 된다.
 // ============================================================
-const CACHE = 'hangul-trace-v3';
+const CACHE = 'hangul-trace-v4';
 
 const CORE = [
   './',
@@ -12,6 +12,8 @@ const CORE = [
   './icon.svg',
   './src/main.js',
   './src/jamo.js',
+  './src/compose.js',
+  './src/curriculum.js',
   './src/geometry.js',
   './src/store.js',
   './src/audio.js',

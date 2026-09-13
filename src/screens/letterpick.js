@@ -1,9 +1,9 @@
 // ============================================================
-// 글자 고르기 — 아이가 직접 시작할 글자를 고른다
-//   고른 글자부터 순서대로 이어진다 (ㄴ 을 고르면 ㄴ ㄷ ㄹ …)
-//   색으로 상태를 보여 준다: 초록 = 해봤고 통과, 노랑 = 다시 만날 글자
+// 글자 고르기 — 아이가 직접 시작할 자리를 고른다
+//   고른 것부터 순서대로 이어진다 (ㄴ 을 고르면 ㄴ ㄷ ㄹ …)
+//   색으로 상태를 보여 준다: 초록 = 해봤고 통과, 노랑 = 다시 만날 것
+//   지금 단계의 목록을 보여 준다. 3단계는 100개라 밑으로 넘어간다.
 // ============================================================
-import { JAMO } from '../jamo.js';
 import { state } from '../store.js';
 import { say, sfx } from '../audio.js';
 
@@ -17,6 +17,7 @@ function homeIcon() {
 
 export function renderLetterPick(root, { onHome, onPick } = {}) {
   const p = state.progress;
+  const stage = state.stage;
   root.innerHTML = '';
 
   const wrap = document.createElement('div');
@@ -29,19 +30,28 @@ export function renderLetterPick(root, { onHome, onPick } = {}) {
   home.addEventListener('click', () => { sfx.tap(); onHome?.(); });
   wrap.appendChild(home);
 
+  const title = document.createElement('div');
+  title.className = 'pick-title';
+  title.textContent = `${stage.no}단계 ${stage.name}`;
+  wrap.appendChild(title);
+
   const grid = document.createElement('div');
   grid.className = 'pick-grid';
 
   let busy = false;
-  JAMO.forEach((j, i) => {
+  stage.items.forEach((it, i) => {
+    const len = [...it.text].length;
     const cell = document.createElement('button');
     cell.className = 'pick-cell';
-    cell.innerHTML = `<b class="pc-ch">${j.ch}</b>`
-      + (j.emoji ? `<span class="pc-word">${j.emoji} ${j.word}</span>` : '');
-    cell.setAttribute('aria-label', `${j.name} ${j.word ?? ''}`);
+    const sub = stage.id === 'jamo'
+      ? (it.emoji ? `${it.emoji} ${it.word}` : '')
+      : (it.emoji ?? '');
+    cell.innerHTML = `<b class="pc-ch${len > 1 ? ` len${Math.min(len, 3)}` : ''}">${it.text}</b>`
+      + (sub ? `<span class="pc-word">${sub}</span>` : '');
+    cell.setAttribute('aria-label', `${it.name ?? it.text} ${stage.id === 'jamo' ? (it.word ?? '') : ''}`);
 
-    const passed = (p.stats?.[j.id]?.passes ?? 0) > 0;
-    const again = p.weak?.includes(j.id);
+    const passed = (p.stats?.[it.id]?.passes ?? 0) > 0;
+    const again = p.weak?.includes(it.id);
     if (passed) cell.classList.add('done');
     if (again) cell.classList.add('again');
     if (i === p.cursor) cell.classList.add('here');
@@ -56,7 +66,8 @@ export function renderLetterPick(root, { onHome, onPick } = {}) {
       if (busy) return;
       busy = true;
       sfx.tap();
-      say(`jamo-${j.id}`);            // 고른 글자를 한 번 들려주고 시작한다
+      // 고른 것을 한 번 들려주고 시작한다
+      say(stage.id === 'jamo' ? `jamo-${it.id}` : `say-${it.text}`, it.name ?? it.text);
       cell.classList.add('here');
       setTimeout(() => onPick?.(i), 700);
     });
@@ -65,4 +76,9 @@ export function renderLetterPick(root, { onHome, onPick } = {}) {
 
   wrap.appendChild(grid);
   root.appendChild(wrap);
+
+  // 하던 자리가 보이도록 스크롤을 맞춘다 (3단계는 100개라 밑에 있을 수 있다)
+  requestAnimationFrame(() => {
+    grid.querySelector('.pick-cell.here')?.scrollIntoView({ block: 'center' });
+  });
 }

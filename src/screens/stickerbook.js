@@ -37,6 +37,12 @@ export async function renderStickerBook(root, { onHome, onContinue, highlight = 
   home.addEventListener('click', () => { sfx.tap(); onHome?.(); });
   wrap.appendChild(home);
 
+  // 어느 단계의 친구들인지 — 단계마다 친구 10명이 따로 있다
+  const title = document.createElement('div');
+  title.className = 'pick-title';
+  title.textContent = `${state.stage.no}단계 ${state.stage.name} 친구 ${owned.size} / ${TOTAL}`;
+  wrap.appendChild(title);
+
   const viewport = document.createElement('div');
   viewport.className = 'book-viewport';
   const pages = document.createElement('div');
@@ -82,11 +88,12 @@ export async function renderStickerBook(root, { onHome, onContinue, highlight = 
     pages.appendChild(page);
   }
 
-  // 자모를 다 뗀 날 — 축하 띠
+  // 그 단계를 다 뗀 날 — 축하 띠
   if (finished) {
+    const stage = state.stage;
     const banner = document.createElement('div');
     banner.className = 'book-banner';
-    banner.innerHTML = '<b>자모 24자를 모두 썼어요!</b>'
+    banner.innerHTML = `<b>${stage.no}단계 ${stage.name} ${stage.items.length}개를 모두 썼어요!</b>`
       + `<span>친구 ${TOTAL}명을 다 모았어요</span>`;
     wrap.insertBefore(banner, viewport);
   }

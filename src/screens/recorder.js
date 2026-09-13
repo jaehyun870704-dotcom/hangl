@@ -5,6 +5,7 @@
 //  · wav 묶음으로 내보내 assets/audio 에 넣으면 다른 기기에서도 재생된다
 // ============================================================
 import { voiceCatalog, scriptText } from '../lines.js';
+import { STAGES } from '../curriculum.js';
 import { loadStickerMeta, stickerCount, stickerArt, stickerLabel,
   saveStickerImage, clearStickerImage, hasStickerImage } from '../stickers.js';
 import { SFX_SLOTS, SFX_PRESETS, previewSfx } from '../audio.js';
@@ -197,27 +198,88 @@ export async function renderRecorder(host, { onChange } = {}) {
     rowsByKey.forEach((row, key) => { row.hidden = only && hasVoice(key); });
   });
 
-  // ── 친구 이름 바꾸기 ────────────────────────────────────
-  host.insertAdjacentHTML('beforeend',
-    '<h3 class="rec-group">친구 이름 <small>아이가 부르기 쉬운 이름으로 바꿀 수 있습니다. ' +
-    '바꾸면 아래 «캐릭터 이름» 문구도 함께 바뀌니 그 줄만 다시 녹음하세요.</small></h3>');
-  const nameCard = document.createElement('div');
-  nameCard.className = 'card friend-list';
-  for (let slot = 1; slot <= stickerCount(); slot++) {
+  // ── 친구 이름·그림 (단계마다 10명) ──────────────────────
+  for (const stage of STAGES) buildFriendSection(stage);
+
+  /**
+   * 한 단계의 친구 10명 — 이름 바꾸기, 그림 하나씩, 그림 한 번에.
+   * 단계마다 친구가 다르므로 그림도 이름도 단계별로 따로 보관한다.
+   */
+  function buildFriendSection(stage) {
+    host.insertAdjacentHTML('beforeend',
+      `<h3 class="rec-group">${stage.no}단계 ${stage.name} 친구 ${stickerCount(stage.id)}명`
+      + ` <small>${stage.no}단계(${stage.hint})를 끝까지 하면 이 친구들을 다 모읍니다.`
+      + ' 이름을 바꾸면 아래 «캐릭터 이름» 문구도 함께 바뀌니 그 줄만 다시 녹음하세요.</small></h3>');
+
+    const card = document.createElement('div');
+    card.className = 'card friend-list';
+
+    // 그림 한 번에 올리기 — 사진첩에서 10장을 골라 1번부터 차례로 넣는다
+    const bulk = document.createElement('div');
+    bulk.className = 'row';
+    bulk.innerHTML = '<div><label>그림 10장 한 번에 올리기</label>'
+      + '<small>사진첩에서 <b>1, 2, 3 … 10</b> 을 한꺼번에 고르면 그 번호대로 1번 친구부터 들어갑니다.'
+      + ' 번호가 없는 파일은 고른 차례대로 들어갑니다.</small></div>';
+    const bulkCtl = document.createElement('div');
+    bulkCtl.className = 'ctl';
+    const bulkMsgEl = document.createElement('span');
+    bulkMsgEl.className = 'tiny';
+    const bulkPick = document.createElement('input');
+    bulkPick.type = 'file';
+    bulkPick.accept = 'image/*';
+    bulkPick.multiple = true;
+    bulkPick.hidden = true;
+    const bulkBtn = document.createElement('button');
+    bulkBtn.className = 'btn ghost';
+    bulkBtn.textContent = '사진 고르기';
+    bulkBtn.addEventListener('click', () => bulkPick.click());
+    bulkPick.addEventListener('change', async () => {
+      const picked = [...(bulkPick.files ?? [])];
+      if (!picked.length) return;
+      bulkBtn.disabled = true;
+      const plan = planSlots(picked, stickerCount(stage.id));
+      let done = 0;
+      for (const [slot, f] of plan) {
+        bulkBtn.textContent = `넣는 중… ${done + 1}/${plan.length}`;
+        try {
+          await saveStickerImage(slot, f, stage.id);
+          rows[slot]?.refresh();
+          done += 1;
+        } catch (err) { console.warn(f.name, err); }
+      }
+      bulkBtn.textContent = '사진 고르기';
+      bulkBtn.disabled = false;
+      bulkMsgEl.textContent = `${done}장 넣음`
+        + (picked.length > plan.length ? ` · ${picked.length - plan.length}장은 자리가 없어 건너뜀` : '');
+      bulkPick.value = '';
+    });
+    bulkCtl.append(bulkMsgEl, bulkBtn, bulkPick);
+    bulk.appendChild(bulkCtl);
+    card.appendChild(bulk);
+
+    const rows = {};
+    for (let slot = 1; slot <= stickerCount(stage.id); slot++) {
+      rows[slot] = buildFriendRow(card, stage, slot);
+    }
+    host.appendChild(card);
+  }
+
+  /** 친구 한 줄 */
+  function buildFriendRow(card, stage, slot) {
     const row = document.createElement('div');
     row.className = 'friend-row';
-    const art = stickerArt(slot);
+    const art = stickerArt(slot, { stage: stage.id });
     art.classList.add('friend-art');
     row.appendChild(art);
 
     const input = document.createElement('input');
     input.type = 'text';
-    input.value = stickerLabel(slot);
+    input.value = stickerLabel(slot, stage.id);
     input.maxLength = 20;
-    input.setAttribute('aria-label', `${slot}번 친구 이름`);
+    input.setAttribute('aria-label', `${stage.no}단계 ${slot}번 친구 이름`);
     input.addEventListener('change', () => {
-      setCharacterName(slot, input.value);
-      input.value = stickerLabel(slot);
+      setCharacterName(slot, input.value, stage.id);
+      input.value = stickerLabel(slot, stage.id);
       redrawVoiceList();
     });
     row.appendChild(input);
@@ -228,22 +290,22 @@ export async function renderRecorder(host, { onChange } = {}) {
     picker.hidden = true;
     row.appendChild(picker);
 
+    const label = () => (hasStickerImage(slot, stage.id) ? '그림 바꾸기' : '그림');
     const pick = document.createElement('button');
     pick.className = 'mini';
-    pick.textContent = hasStickerImage(slot) ? '그림 바꾸기' : '그림';
+    pick.textContent = label();
     pick.addEventListener('click', () => picker.click());
     picker.addEventListener('change', async () => {
       const f = picker.files?.[0];
       if (!f) return;
       pick.textContent = '넣는 중…';
       try {
-        await saveStickerImage(slot, f);
-        swapArt();
-        pick.textContent = '그림 바꾸기';
+        await saveStickerImage(slot, f, stage.id);
+        refresh();
       } catch (err) {
         console.warn(err);
         pick.textContent = '실패';
-        setTimeout(() => { pick.textContent = hasStickerImage(slot) ? '그림 바꾸기' : '그림'; }, 1600);
+        setTimeout(() => { pick.textContent = label(); }, 1600);
       }
       picker.value = '';
     });
@@ -253,24 +315,51 @@ export async function renderRecorder(host, { onChange } = {}) {
     reset.className = 'mini';
     reset.textContent = '원래대로';
     reset.addEventListener('click', async () => {
-      setCharacterName(slot, '');
-      await clearStickerImage(slot);
-      input.value = stickerLabel(slot);
-      pick.textContent = '그림';
-      swapArt();
+      setCharacterName(slot, '', stage.id);
+      await clearStickerImage(slot, stage.id);
+      input.value = stickerLabel(slot, stage.id);
+      refresh();
       redrawVoiceList();
     });
     row.appendChild(reset);
-    nameCard.appendChild(row);
+    card.appendChild(row);
 
-    /** 그림이 바뀌면 그 줄의 미리보기만 다시 그린다 */
-    function swapArt() {
-      const fresh = stickerArt(slot);
+    /** 그림이 바뀌면 그 줄의 미리보기와 단추 글씨만 다시 그린다 */
+    function refresh() {
+      const fresh = stickerArt(slot, { stage: stage.id });
       fresh.classList.add('friend-art');
       row.replaceChild(fresh, row.firstChild);
+      pick.textContent = label();
     }
+    return { refresh };
   }
-  host.appendChild(nameCard);
+
+  /**
+   * 고른 사진들을 슬롯에 배정한다.
+   *  ① 이름이 1..10 번호로 또렷하면 그 번호 자리에 그대로
+   *  ② 아니면 이름 속 숫자 순서(없으면 고른 차례)대로 1번부터 채운다
+   */
+  function planSlots(files, total) {
+    const numOf = (name) => {
+      const stem = name.replace(/\.[a-z0-9]+$/i, '');
+      const lead = stem.match(/^\s*(\d{1,3})\b/);
+      if (lead) return Number(lead[1]);
+      const any = stem.match(/(\d{1,4})(?!.*\d)/);   // 마지막 숫자 덩어리
+      return any ? Number(any[1]) : null;
+    };
+    const nums = files.map((f) => numOf(f.name));
+    const exact = nums.every((n) => n !== null && n >= 1 && n <= total)
+      && new Set(nums).size === nums.length;
+    if (exact) return files.map((f, i) => [nums[i], f]).sort((a, b) => a[0] - b[0]);
+
+    const order = files.map((f, i) => ({ f, n: nums[i], i })).sort((a, b) => {
+      if (a.n !== null && b.n !== null) return a.n - b.n || a.i - b.i;
+      if (a.n !== null) return -1;
+      if (b.n !== null) return 1;
+      return a.f.name.localeCompare(b.f.name, 'ko', { numeric: true }) || a.i - b.i;
+    });
+    return order.slice(0, total).map((x, i) => [i + 1, x.f]);
+  }
 
   /** 이름이 바뀌면 아래 문구 목록의 글자와 상태를 다시 그린다 */
   function redrawVoiceList() {

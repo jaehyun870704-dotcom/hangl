@@ -5,6 +5,7 @@
 //  → 문구를 추가하면 녹음 목록에도 자동으로 나타난다
 // ============================================================
 import { JAMO } from './jamo.js';
+import { STAGES } from './curriculum.js';
 import { stickerVoiceKey, stickerLabel, stickerCount } from './stickers.js';
 
 /** 안내 음성 (PRD 4.2 / 5.4 / 6.2 / 7.1) */
@@ -39,19 +40,30 @@ export function lineFor(key) {
     const j = JAMO.find((x) => x.id === key.slice(5));
     return j ? j.name : '';
   }
+  // 2·3단계 글자는 녹음 목록에 없다. 키에 적힌 글자를 그대로 읽는다
+  if (key.startsWith('say-')) return key.slice(4);
   if (key.startsWith('sticker-')) {
-    const slot = Number(key.slice(8));
-    return Number.isFinite(slot) ? stickerLabel(slot) : '';
+    const m = key.match(/^sticker-(s\d-)?(\d+)$/);
+    if (!m) return '';
+    const stage = STAGES.find((s) => s.prefix === (m[1] ?? ''));
+    return stage ? stickerLabel(Number(m[2]), stage.id) : '';
   }
   return '';
 }
 
 /** 부모 메뉴 녹음 목록 — 그룹별로 묶어서 반환 */
 export function voiceCatalog() {
-  const stickers = [];
-  for (let slot = 1; slot <= stickerCount(); slot++) {
-    stickers.push({ key: stickerVoiceKey(slot), label: `${slot}번`, text: stickerLabel(slot) });
-  }
+  const stickerGroups = STAGES.map((s) => ({
+    group: `캐릭터 이름 · ${s.no}단계 ${s.name}`,
+    stage: s.id,
+    note: `${s.no}단계에서 스티커를 받을 때와 스티커북에서 그 친구를 누를 때 재생됩니다.`,
+    items: Array.from({ length: stickerCount(s.id) }, (_, i) => ({
+      key: stickerVoiceKey(i + 1, s.id),
+      label: `${i + 1}번`,
+      text: stickerLabel(i + 1, s.id),
+    })),
+  }));
+
   return [
     {
       group: '자모 이름',
@@ -63,11 +75,7 @@ export function voiceCatalog() {
       note: '아이에게 말을 거는 문장입니다. 밝고 느리게.',
       items: Object.entries(UI_LINES).map(([key, v]) => ({ key, label: v.where, text: v.text })),
     },
-    {
-      group: '캐릭터 이름',
-      note: '스티커를 받을 때와 스티커북에서 캐릭터를 누를 때 재생됩니다.',
-      items: stickers,
-    },
+    ...stickerGroups,
   ];
 }
 

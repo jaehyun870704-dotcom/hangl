@@ -157,6 +157,11 @@ button{font-family:inherit;color:inherit;border:0;background:none;padding:0;curs
   font-size:16px;color:#B7A88F}
 .jamo-grid span.done{background:var(--mint);color:#2E6B5C;font-weight:700}
 .jamo-grid span.weak{background:#FFE0DA;color:#B4463A;font-weight:700}
+/* 3단계 낱말은 «다람쥐» 처럼 길어서 네모 칸에 안 들어간다 */
+.jamo-grid.wide{grid-template-columns:repeat(auto-fill,minmax(64px,1fr))}
+.jamo-grid.wide span{aspect-ratio:auto;padding:7px 4px;font-size:14px;white-space:nowrap}
+.parent-wrap h2 small{font-weight:500;color:#B7A88F;margin-left:6px;font-size:12px}
+.pill.on{box-shadow:0 2px 6px rgba(0,0,0,.06),inset 0 0 0 2px var(--ok);font-weight:700}
 table.rec{width:100%;border-collapse:collapse;font-size:13px}
 table.rec th,table.rec td{padding:7px 6px;border-bottom:1px solid #F0E8DC;text-align:left}
 table.rec th{color:#9A7C4E;font-weight:600}
@@ -252,7 +257,7 @@ h3.rec-group small{font-weight:400;color:#B3A38A;margin-left:6px;font-size:11.5p
 
 /* 친구 이름 바꾸기 */
 .friend-list{padding:8px 14px}
-.friend-row{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:12px;
+.friend-row{display:grid;grid-template-columns:44px 1fr auto auto;align-items:center;gap:12px;
   padding:7px 0;border-bottom:1px solid #F3ECE1}
 .friend-row:last-child{border-bottom:0}
 .friend-art{width:40px;height:40px}
@@ -269,8 +274,12 @@ h3.rec-group small{font-weight:400;color:#B3A38A;margin-left:6px;font-size:11.5p
 .pick-letters b{font-size:min(4.4vh,32px);color:var(--ink);font-weight:800;opacity:.85}
 
 .pick-wrap{position:absolute;inset:0;background:var(--cream);display:flex;flex-direction:column}
-.pick-grid{flex:1;display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(4,1fr);
-  gap:1.4vh;padding:9vh 4vh 3vh}
+/* 3단계는 100개라 한 화면에 안 들어간다 — 줄이 넘치면 스크롤된다 */
+.pick-grid{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:minmax(min(17vh,120px),1fr);
+  align-content:start;gap:1.4vh;padding:9vh 4vh 3vh}
+.pick-title{position:absolute;left:50%;top:2.4vh;transform:translateX(-50%);z-index:4;
+  font-size:min(2.4vh,17px);font-weight:800;color:var(--ink);opacity:.7;white-space:nowrap}
 .pick-cell{position:relative;border-radius:20px;background:#fff;box-shadow:inset 0 0 0 3px #EFE6D8;
   display:grid;place-items:center;font-size:min(6vh,46px);font-weight:800;color:#8A6E45}
 .pick-cell:active{transform:scale(.94)}
@@ -324,8 +333,31 @@ h3.rec-group small{font-weight:400;color:#B3A38A;margin-left:6px;font-size:11.5p
 
 .pick-cell{flex-direction:column;gap:2px}
 .pc-ch{font-size:min(5.4vh,42px);line-height:1.1}
+.pc-ch.len2{font-size:min(4vh,31px)}
+.pc-ch.len3{font-size:min(3.1vh,24px)}
 .pc-word{font-size:min(1.9vh,13px);font-weight:600;color:#A08A63;white-space:nowrap}
 .pick-cell.done .pc-word{color:#4E8C7A}
+
+/* 낱말 쓰기 — 위에 낱말 전체를 두고 지금 쓰는 글자에 표시한다 */
+.word-parts{display:flex;gap:6px;align-items:center}
+.word-parts i{font-style:normal;font-size:min(3vh,22px);font-weight:800;color:#C4B49A;
+  line-height:1;transition:color .2s,transform .2s}
+.word-parts i.ok{color:#4E8C7A}
+.word-parts i.on{color:var(--ink);transform:scale(1.22)}
+
+/* ─────────── 단계 고르기 (홈 위쪽) ─────────── */
+.stage-bar{position:absolute;z-index:3;left:50%;top:2.2vh;transform:translateX(-50%);
+  display:flex;gap:8px;max-width:min(92vw,640px)}
+.stage-btn{flex:1 1 0;min-width:88px;padding:8px 12px 9px;border-radius:20px;
+  background:rgba(255,255,255,.62);box-shadow:0 2px 8px rgba(122,91,46,.10);
+  display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.15}
+.stage-btn:active{transform:scale(.95)}
+.stage-btn.on{background:#fff;box-shadow:0 3px 12px rgba(122,91,46,.2),inset 0 0 0 3px var(--sun)}
+.stage-btn b{font-size:min(2.3vh,16px);font-weight:800;color:var(--ink)}
+.stage-btn small{font-size:min(1.7vh,12px);font-weight:700;color:#A08A63}
+.stage-btn.on small{color:#4E8C7A}
+.stage-btn .bar{width:100%;height:5px;border-radius:3px;background:#EFE6D8;overflow:hidden;margin-top:3px}
+.stage-btn .bar i{display:block;height:100%;background:var(--ok);border-radius:3px;transition:width .3s}
 
 /* ─────────── 세로로 들어도 쓸 수 있게 ─────────── */
 @media (orientation:portrait){

@@ -254,6 +254,23 @@ export function renderParent(root, { onHome, locked = true, tab = null }) {
       + '아이가 다 그리기도 전에 글자가 저절로 채워진다면 이 값을 올리세요'),
     slider('음성 볼륨', 'volume', 0, 1, 0.05, ''),
     {
+      label: '제대로 쓸 때까지 반복',
+      note: '켜면 «글자 통과 기준»을 넘을 때까지 같은 글자를 다시 냅니다. '
+        + '다시 낼 때마다 점선이 굵어지고 밴드가 넓어지고 시범을 다시 보여 줍니다. '
+        + '끄면 두 번 해 보고 넘어간 뒤 세션 끝에 다시 만납니다. '
+        + '어느 쪽이든 집 버튼으로 언제든 나올 수 있습니다',
+      control: () => {
+        const box = document.createElement('div');
+        box.className = 'ctl';
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.checked = st.mustPass !== false;
+        input.addEventListener('change', () => updateSettings({ mustPass: input.checked }));
+        box.appendChild(input);
+        return box;
+      },
+    },
+    {
       label: '2·3단계 순서 섞기',
       note: '켜면 «가 나 다» 차례를 외우지 않고 매번 다른 글자가 나옵니다. 1단계 자모는 언제나 ㄱ ㄴ ㄷ 순서입니다',
       control: () => {

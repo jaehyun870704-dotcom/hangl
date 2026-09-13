@@ -38,6 +38,7 @@ const defaults = () => ({
     startR: 0.15,              // PRD 5.2 시작점 반경
     strokeMinCoverage: 0.6,    // 획을 이만큼 덮어야 «한 획 그었다» 로 센다
     randomOrder: true,         // 2·3단계를 순서 없이 섞어서 낸다
+    mustPass: true,            // 제대로 쓸 때까지 같은 글자를 다시 낸다
     volume: 0.85,
     dailyLimit: 0,             // 0 = 제한 없음 (PRD 9.1 기본값)
     onlyRecordedVoice: false,  // true = 녹음된 목소리만 재생 (기계음 TTS 사용 안 함)

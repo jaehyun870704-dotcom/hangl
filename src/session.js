@@ -184,6 +184,26 @@ export function createSessionScreen(deps) {
     wordEl.innerHTML = `${item.emoji ? `<b>${item.emoji}</b>` : ''}<span class="word-parts">${chars}</span>`;
   }
 
+  /**
+   * 이번 시도에 쓸 판정 기준.
+   *
+   * 제대로 쓸 때까지 같은 글자를 다시 내기 때문에, 다시 낼 때마다 조금씩 더 도와준다.
+   * 점선을 굵게 하고 밴드(선 밖으로 나가도 되는 폭)를 넓힌다 — 손이 떨려도 되게.
+   * 다만 «획 인정 기준» 은 건드리지 않는다. 그것까지 낮추면
+   * 살짝 스치기만 해도 획이 되어 «안 그렸는데 그려졌다» 가 다시 생긴다.
+   * 넓히는 데도 끝이 있다. 아무렇게나 그어도 통과하는 지경까지 가지는 않는다.
+   */
+  function charOpts() {
+    const st = state.settings;
+    const ease = Math.min(Math.max(0, attempt - 1), 4);   // 0 1 2 3 4 에서 멈춘다
+    return {
+      band: st.band * (1 + ease * 0.14),                  // 12% → 최대 19%
+      startR: st.startR * (1 + ease * 0.12),
+      minCover: st.strokeMinCoverage,
+      guideScale: ease ? Math.min(1.6, 1 + ease * 0.15) : 1,   // PRD 5.4 재시도 시 굵게
+    };
+  }
+
   // ── 글자 표시 ───────────────────────────────────────────
   function showLetter() {
     const item = currentItem();
@@ -193,14 +213,8 @@ export function createSessionScreen(deps) {
     renderDots();
     paintWord();
 
-    const st = state.settings;
     const firstSight = !seenInSession.has(`${item.id}/${partIdx}`);
-    tracer.setChar(part, {
-      band: st.band,
-      startR: st.startR,
-      minCover: st.strokeMinCoverage,
-      guideScale: attempt > 1 ? 1.3 : 1,   // 재시도 시 점선을 굵게 (PRD 5.4)
-    });
+    tracer.setChar(part, charOpts());
     tracer.enable(false);
 
     // 낱말의 첫 글자에서는 낱말 전체를 먼저 들려주고, 이어서 쓸 글자를 읽는다
@@ -225,6 +239,16 @@ export function createSessionScreen(deps) {
   }
 
   // ── 글자 1자 완료 ───────────────────────────────────────
+  /**
+   * 제대로 쓰지 않으면 넘어가지 않는다.
+   *
+   * 같은 글자를 될 때까지 다시 낸다. 대신 다시 낼 때마다 점선이 굵어지고
+   * 밴드가 넓어지고 시범을 다시 보여 준다 (charOpts). 도와주되 대신 그려 주지는 않는다.
+   * 그만하고 싶으면 왼쪽 위 집 버튼으로 언제든 나갈 수 있다.
+   *
+   * 부모 메뉴에서 «제대로 쓸 때까지 반복» 을 끄면 예전처럼
+   * 두 번 해 보고 넘어간 뒤 세션 끝에 다시 만난다 (PRD 5.3).
+   */
   function onCharComplete(acc) {
     if (busy) return;
     busy = true;
@@ -232,44 +256,60 @@ export function createSessionScreen(deps) {
 
     const item = currentItem();
     const th = state.settings.passThreshold;
+    const mustPass = state.settings.mustPass !== false;
     partBest[partIdx] = Math.max(partBest[partIdx] ?? 0, acc);
+    const ok = acc >= th;
+    const lastPart = partIdx >= item.parts.length - 1;
 
-    // 낱말 중간 글자 — 항목 판정은 마지막 글자에서 한 번만 한다
-    if (partIdx < item.parts.length - 1) {
-      if (acc >= th || retryRound) {
+    // ── 제대로 쓸 때까지 다시 ─────────────────────────────
+    if (mustPass && !ok && !retryRound) {
+      recordLetter(item.id, acc, false);     // 애먹은 것도 부모 화면에 남긴다
+      attempt += 1;
+      sfx.soft();
+      say('try-again');                      // 부정 표현 금지 (PRD 5.4)
+      // 세 번째부터는 무엇을 쓰는 글자인지 이름도 다시 들려준다
+      if (attempt >= 3) {
+        setTimeout(() => { if (active) sayPart(); }, 1100);
+        setTimeout(() => { if (active) showLetter(); }, 2000);
+      } else {
+        setTimeout(() => { if (active) showLetter(); }, 1150);
+      }
+      return;
+    }
+
+    // ── 낱말 중간 글자 — 다음 글자로 ───────────────────────
+    if (!lastPart) {
+      if (ok || retryRound) {
         sfx.charPass();
         sparkle(false);
         nextPart(900);
       } else if (attempt === 1) {
         sfx.soft();
-        say('try-again');                  // 부정 표현 금지 (PRD 5.4)
+        say('try-again');
         attempt = 2;
         setTimeout(() => { if (active) showLetter(); }, 1100);
       } else {
-        // 두 번 다 못 맞췄다. 막지 않고 다음 글자로 넘어간다
         sfx.soft();
         nextPart(1200);
       }
       return;
     }
 
-    // 항목의 마지막 글자 — 글자별 점수의 평균으로 판정한다
+    // ── 항목의 마지막 글자 — 글자별 점수의 평균으로 기록한다 ──
     const parts = partBest.slice(0, item.parts.length).map((v) => v ?? 0);
     const itemAcc = parts.reduce((a, b) => a + b, 0) / parts.length;
-    const pass = itemAcc >= th;
+    const pass = mustPass ? true : itemAcc >= th;   // 반복 모드에서는 통과해야 여기까지 온다
     bestAcc[item.id] = Math.max(bestAcc[item.id] ?? 0, itemAcc);
     recordLetter(item.id, itemAcc, pass);
     if (pass) passedSet.add(item.id);
 
-    if (retryRound) {
+    if (pass || retryRound) {
       // 재도전 라운드는 결과와 무관하게 통과 처리 (PRD 5.3)
       praise(item, true);
       return;
     }
 
-    if (pass) {
-      praise(item, true);
-    } else if (attempt === 1 && item.parts.length === 1) {
+    if (attempt === 1 && item.parts.length === 1) {
       sfx.soft();
       say('try-again');
       attempt = 2;
@@ -374,11 +414,7 @@ export function createSessionScreen(deps) {
     const part = currentPart();
     if (!part) return;
     sfx.tap();
-    const st = state.settings;
-    tracer.setChar(part, {
-      band: st.band, startR: st.startR, minCover: st.strokeMinCoverage,
-      guideScale: attempt > 1 ? 1.3 : 1,
-    });
+    tracer.setChar(part, charOpts());
     tracer.enable(true);
   });
 

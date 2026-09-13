@@ -54,7 +54,8 @@ export function renderLetterPick(root, { onHome, onPick } = {}) {
     const again = p.weak?.includes(it.id);
     if (passed) cell.classList.add('done');
     if (again) cell.classList.add('again');
-    if (i === p.cursor) cell.classList.add('here');
+    // 섞어서 내는 단계는 «여기서부터» 라는 자리가 없다
+    if (!stage.shuffle && i === p.cursor) cell.classList.add('here');
     if (passed || again) {
       const mark = document.createElement('span');
       mark.className = 'mark';

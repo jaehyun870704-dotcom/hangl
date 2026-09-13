@@ -7,20 +7,42 @@
 // 두 글자를 한 화면에 넣으면 네 살 손에는 글자가 너무 작다.
 // 위쪽에 낱말 전체를 두어 지금 어디를 쓰는지 보여 준다.
 // ============================================================
-import { state, recordLetter, finishSession, grantSticker, applySessionOutcome, save } from './store.js';
-import { createTracer } from './trace.js';
+import { state, recordLetter, finishSession, grantSticker, applySessionOutcome, save,
+  completedLetters } from './store.js';
+import { createTracer, MISS_LIMIT } from './trace.js';
 import { say, sfx, stopVoice } from './audio.js';
 
 /** 이 글자를 읽을 때 쓰는 음성 키. 1단계는 녹음해 둔 것이 있다 */
 const voiceKeyFor = (stageId, text, item) =>
   (stageId === 'jamo' ? `jamo-${item.id}` : `say-${text}`);
 
-/** 이번 세션에 배정할 항목 목록 */
+/** 제자리 섞기 */
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * 이번 세션에 배정할 항목 목록.
+ *
+ * 1단계 자모는 ㄱ ㄴ ㄷ 순서대로 간다 — 배우는 순서 자체가 뜻이 있다.
+ * 2·3단계는 섞어서 낸다. 가나다라마바사 를 순서대로 외워 버리면
+ * 글자를 읽는 것이 아니라 차례를 외우는 것이 된다.
+ * 아직 못 뗀 것 중에서 먼저 고르고, 다 뗐으면 전체에서 고른다.
+ */
 export function composeSession({ skipWeak = false } = {}) {
   const p = state.progress;
-  const list = state.stage.items;
+  const stage = state.stage;
+  const list = stage.items;
   const size = Math.max(2, Math.min(state.settings.maxSessionSize, p.sessionSize));
+  const shuffled = stage.shuffle && state.settings.randomOrder !== false;
   const letters = [];
+
+  // 아이가 «글자 고르기» 에서 직접 고른 것은 무조건 맨 앞에 온다
+  if (shuffled && skipWeak && list.length) letters.push(list[p.cursor % list.length].id);
 
   // 다시 만나야 할 것을 먼저 (새 진도가 멈추지 않도록 최대 1/3)
   // 아이가 글자를 직접 골랐을 때는 고른 글자가 맨 앞에 와야 하므로 건너뛴다
@@ -29,6 +51,16 @@ export function composeSession({ skipWeak = false } = {}) {
     for (const id of p.weak.slice(0, weakQuota)) {
       if (letters.length < size - 1 && list.some((it) => it.id === id)) letters.push(id);
     }
+  }
+
+  if (shuffled) {
+    const passed = new Set(completedLetters());
+    const taken = new Set(letters);
+    let pool = list.filter((it) => !taken.has(it.id) && !passed.has(it.id));
+    if (!pool.length) pool = list.filter((it) => !taken.has(it.id));   // 다 뗐으면 전체에서
+    shuffle(pool);
+    while (letters.length < size && pool.length) letters.push(pool.pop().id);
+    return { letters, nextCursor: p.cursor + letters.length };
   }
 
   // 커리큘럼 순서대로 새 항목 채우기 (끝까지 가면 처음부터 반복)
@@ -68,6 +100,9 @@ export function createSessionScreen(deps) {
       onStroke: (i, r) => { if (r.score >= 0.5) sfx.stroke(); else sfx.tap(); },
       onComplete: (acc) => onCharComplete(acc),
       onTap: () => sayPart(),
+      // 획을 끝까지 긋지 않아 세지 않은 경우 — 조용히 지우고 다시 그리게 둔다.
+      // 세 번째에는 «한 번 더 해볼까?» 로 한 번만 말을 건다 (닦달하지 않는다)
+      onShort: (i, r, n) => { sfx.soft(); if (n === MISS_LIMIT) say('try-again'); },
     });
     return tracer;
   }
@@ -163,6 +198,7 @@ export function createSessionScreen(deps) {
     tracer.setChar(part, {
       band: st.band,
       startR: st.startR,
+      minCover: st.strokeMinCoverage,
       guideScale: attempt > 1 ? 1.3 : 1,   // 재시도 시 점선을 굵게 (PRD 5.4)
     });
     tracer.enable(false);
@@ -339,7 +375,10 @@ export function createSessionScreen(deps) {
     if (!part) return;
     sfx.tap();
     const st = state.settings;
-    tracer.setChar(part, { band: st.band, startR: st.startR, guideScale: attempt > 1 ? 1.3 : 1 });
+    tracer.setChar(part, {
+      band: st.band, startR: st.startR, minCover: st.strokeMinCoverage,
+      guideScale: attempt > 1 ? 1.3 : 1,
+    });
     tracer.enable(true);
   });
 

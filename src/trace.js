@@ -5,11 +5,19 @@
 //  - 획순은 판정하지 않음: 그린 획을 남은 획 중 가장 잘 맞는 것에 배정
 //  - 글자를 짧게 톡 누르면 이름 음성 재생 (획 시도로 치지 않음)
 // ============================================================
-import { resample, simplify, pathLength, pickStroke } from './geometry.js';
+import { resample, simplify, pathLength, pickStroke, dist } from './geometry.js';
 
 const CRAYON = ['#4A9BE8', '#F2764B', '#59BE9E', '#B07BE0', '#E8A33D'];
 const GUIDE = '#D9D0C2';
 const BAND_FILL = 'rgba(122,91,46,0.055)';
+
+// ── 손을 떼는 것을 곧바로 «획 하나 끝» 으로 보지 않는다 ──────
+//   네 살은 한 획을 긋다 중간에 손을 떼었다 다시 짚는다.
+//   바로 판정해 버리면 짧은 조각이 획으로 인정되고, 그 획이 통째로
+//   칠해져서 «내가 안 그렸는데 저절로 그려졌다» 가 된다.
+const LIFT_GRACE = 420;    // 이 시간 안에 다시 짚으면 같은 획을 이어 긋는 것
+const LIFT_NEAR = 0.20;    // 뗀 자리에서 이만큼 안이어야 이어 긋는 것으로 본다
+export const MISS_LIMIT = 3;   // 이만큼 연속으로 짧으면 그냥 인정한다 (막지 않는다 — PRD 5.3)
 
 export function createTracer(canvas, handlers = {}) {
   const ctx = canvas.getContext('2d');
@@ -26,6 +34,8 @@ export function createTracer(canvas, handlers = {}) {
   let drawing = false;
   let pointerId = null;
   let userPath = [];         // 정규화 좌표
+  let liftTimer = 0;         // 손을 뗀 뒤 판정을 미루는 타이머
+  let misses = 0;            // 이 글자에서 연속으로 짧게 끝난 횟수
   let demo = null;           // { started, strokeIdx, dur }
   let raf = 0;
 
@@ -193,10 +203,30 @@ export function createTracer(canvas, handlers = {}) {
   }
 
   function onDown(e) {
-    if (!enabled || demo || drawing) return;
+    if (!enabled || demo) return;
+
+    // 판정을 기다리는 중에 뗀 자리 근처를 다시 짚으면 «이어 긋기» 다.
+    // 멀리 떨어진 곳을 짚으면 앞의 획을 지금 판정하고 새 획을 시작한다.
+    if (liftTimer) {
+      clearTimeout(liftTimer);
+      liftTimer = 0;
+      const p = eventPoint(e);
+      const last = userPath[userPath.length - 1];
+      if (last && dist(p, last) <= LIFT_NEAR) {
+        drawing = true;
+        pointerId = e.pointerId;
+        try { canvas.setPointerCapture(pointerId); } catch {}
+        userPath.push(p);
+        draw();
+        return;
+      }
+      judge();
+    }
+
+    if (drawing) return;
     drawing = true;
     pointerId = e.pointerId;
-    canvas.setPointerCapture(pointerId);
+    try { canvas.setPointerCapture(pointerId); } catch {}
     userPath = [eventPoint(e)];
     draw();
   }
@@ -212,6 +242,13 @@ export function createTracer(canvas, handlers = {}) {
     drawing = false;
     try { canvas.releasePointerCapture(pointerId); } catch {}
     pointerId = null;
+    // 바로 판정하지 않고 잠깐 기다린다 (LIFT_GRACE 설명 참고)
+    clearTimeout(liftTimer);
+    liftTimer = setTimeout(() => { liftTimer = 0; judge(); }, LIFT_GRACE);
+  }
+
+  /** 그린 것을 어느 획으로 볼지 정하고 채점한다 */
+  function judge() {
     const path = simplify(userPath);
     userPath = [];
 
@@ -227,6 +264,18 @@ export function createTracer(canvas, handlers = {}) {
     if (!remaining.length) { draw(); return; }
 
     const { index, result } = pickStroke(remaining, path, params);
+
+    // 획을 끝까지 긋지 않았으면 «획 하나»로 세지 않는다.
+    //   이게 없으면 살짝 스치기만 해도 그 획이 통째로 칠해지고,
+    //   획 수만큼 스치면 글자가 저절로 끝나 버린다.
+    //   다만 계속 막으면 아이가 갇히므로 세 번 연속이면 그냥 받아 준다.
+    if (result.coverage < (params.minCover ?? 0) && misses < MISS_LIMIT) {
+      misses += 1;
+      draw();
+      handlers.onShort?.(index, result, misses);
+      return;
+    }
+    misses = 0;
     results[index] = result;
     draw();
     handlers.onStroke?.(index, result);
@@ -236,6 +285,7 @@ export function createTracer(canvas, handlers = {}) {
       handlers.onComplete?.(acc, results.slice());
     }
   }
+
 
   canvas.addEventListener('pointerdown', onDown);
   canvas.addEventListener('pointermove', onMove);
@@ -288,23 +338,40 @@ export function createTracer(canvas, handlers = {}) {
   return {
     setChar(next, opts = {}) {
       jamo = next;
-      params = { band: opts.band ?? 0.12, startR: opts.startR ?? 0.15 };
+      params = {
+        band: opts.band ?? 0.12,
+        startR: opts.startR ?? 0.15,
+        minCover: opts.minCover ?? 0.6,   // 이만큼은 덮어야 «획 하나» 로 센다
+      };
       guideScale = opts.guideScale ?? 1;
       samples = jamo.strokes.map((st) => resample(st, 0.006));
       results = jamo.strokes.map(() => null);
       userPath = [];
+      misses = 0;
+      clearTimeout(liftTimer);
+      liftTimer = 0;
       demo = null;
       cancelAnimationFrame(raf);
       draw();
     },
     playDemo,
-    enable(v) { enabled = v; if (!v) { drawing = false; userPath = []; draw(); } },
+    enable(v) {
+      enabled = v;
+      if (!v) {
+        drawing = false;
+        userPath = [];
+        clearTimeout(liftTimer);
+        liftTimer = 0;
+        draw();
+      }
+    },
     isBusy: () => !!demo,
     /** 글자 중심의 화면 좌표 (연출 위치용) */
     center: () => ({ x: box.x0 + box.size / 2, y: box.y0 + box.size / 2, size: box.size }),
     redraw: draw,
     destroy() {
       cancelAnimationFrame(raf);
+      clearTimeout(liftTimer);
       ro.disconnect();
       window.removeEventListener('resize', resize);
       canvas.removeEventListener('pointerdown', onDown);

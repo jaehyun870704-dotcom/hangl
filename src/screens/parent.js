@@ -249,7 +249,24 @@ export function renderParent(root, { onHome, locked = true, tab = null }) {
     slider('유지 기준선', 'holdThreshold', 0.2, 0.8, 0.05, '이 값 미만이면 세션 크기 -1자 (최소 2자)'),
     slider('글자 통과 기준', 'passThreshold', 0.3, 0.9, 0.05, '이 값 이상이면 한 번에 통과. 낮출수록 쉬워집니다'),
     slider('점선 밴드 폭', 'band', 0.06, 0.24, 0.01, '선 밖으로 나가도 인정되는 폭. 넓힐수록 관대해집니다'),
+    slider('획 인정 기준', 'strokeMinCoverage', 0, 0.9, 0.05,
+      '점선을 이만큼은 따라가야 «한 획 그었다»로 셉니다. 0으로 두면 살짝 스치기만 해도 획이 됩니다. '
+      + '아이가 다 그리기도 전에 글자가 저절로 채워진다면 이 값을 올리세요'),
     slider('음성 볼륨', 'volume', 0, 1, 0.05, ''),
+    {
+      label: '2·3단계 순서 섞기',
+      note: '켜면 «가 나 다» 차례를 외우지 않고 매번 다른 글자가 나옵니다. 1단계 자모는 언제나 ㄱ ㄴ ㄷ 순서입니다',
+      control: () => {
+        const box = document.createElement('div');
+        box.className = 'ctl';
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.checked = st.randomOrder !== false;
+        input.addEventListener('change', () => updateSettings({ randomOrder: input.checked }));
+        box.appendChild(input);
+        return box;
+      },
+    },
     {
       label: '하루 세션 상한', note: '0 = 제한 없음 (기본값)',
       control: () => {
